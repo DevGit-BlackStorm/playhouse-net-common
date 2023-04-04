@@ -76,12 +76,15 @@ namespace CommonLib
             queue.Enqueue((byte)(value & 0xFF));         // 하위 바이트 (4번째 바이트)
         }
 
-        public static void ShortToByteArray(short value, RingBuffer queue,int index)
-        {
-            byte[] buffer = queue.Buffer();
-            buffer[index] = (byte)((value >> 8) & 0xFF);
-            buffer[queue.NextIndex(index)] = (byte)(value & 0xFF);
-        }
+        //public static void ShortToByteArray(short value, RingBuffer queue,int index)
+        //{
+        //    //byte[] buffer = queue.Buffer();
+        //    queue.SetByte(index, (byte)((value >> 8) & 0xFF));
+        //    queue.SetByte(queue.NextIndex(index), (byte)(value & 0xFF));
+
+        //    //buffer[index] = (byte)((value >> 8) & 0xFF);
+        //    //buffer[queue.NextIndex(index)] = (byte)(value & 0xFF);
+        //}
 
         public static void ShortToByteArray(short value, byte[] buffer, int offset)
         {
@@ -106,11 +109,11 @@ namespace CommonLib
             return result;
         }
 
-        public static short ByteArrayToShort(byte byte1,byte byte2)
-        {            
-            short result = (short)((byte1 << 8) | byte2);
-            return result;
-        }
+        //public static short ByteArrayToShort(byte byte1,byte byte2)
+        //{            
+        //    short result = (short)((byte1 << 8) | byte2);
+        //    return result;
+        //}
 
         public static int ByteArrayToInt(byte[] buffer, int offset, int size)
         {
@@ -123,12 +126,12 @@ namespace CommonLib
             return result;
         }
 
-        public static int ByteArrayToInt(byte byte1, byte byte2, byte byte3, byte byte4)
-        {
+        //public static int ByteArrayToInt(byte byte1, byte byte2, byte byte3, byte byte4)
+        //{
 
-            int result = (byte1 << 24) | (byte2 << 16) | (byte3 << 8) | byte4;
-            return result;
-        }
+        //    int result = (byte1 << 24) | (byte2 << 16) | (byte3 << 8) | byte4;
+        //    return result;
+        //}
         public static short ToHostOrder(short networkOrderValue)
         {
             if (BitConverter.IsLittleEndian)
