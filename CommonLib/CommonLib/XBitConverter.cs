@@ -49,14 +49,14 @@ namespace CommonLib
                 return value;
             }
         }
-        public static void IntToByteArray(int value, RingBuffer queue)
-        {
+        //public static void IntToByteArray(int value, RingBuffer queue)
+        //{
 
-            queue.Enqueue((byte)((value >> 24) & 0xFF)); // 상위 바이트 (1번째 바이트)
-            queue.Enqueue((byte)((value >> 16) & 0xFF)); // 2번째 바이트
-            queue.Enqueue((byte)((value >> 8) & 0xFF));  // 3번째 바이트
-            queue.Enqueue((byte)(value & 0xFF));         // 하위 바이트 (4번째 바이트)
-        }
+        //    queue.Enqueue((byte)((value >> 24) & 0xFF)); // 상위 바이트 (1번째 바이트)
+        //    queue.Enqueue((byte)((value >> 16) & 0xFF)); // 2번째 바이트
+        //    queue.Enqueue((byte)((value >> 8) & 0xFF));  // 3번째 바이트
+        //    queue.Enqueue((byte)(value & 0xFF));         // 하위 바이트 (4번째 바이트)
+        //}
 
         public static void IntToByteArray(int value, byte[] buffer, int offset)
         {

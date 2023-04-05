@@ -168,7 +168,7 @@ namespace CommonLib
         {
             if (count > _size)
             {
-                throw new ArgumentOutOfRangeException(nameof(count));
+                throw new ArgumentException(nameof(count));
             }
 
             for(int i=0; i < count;++i)
@@ -244,7 +244,7 @@ namespace CommonLib
             }
             else
             {
-                throw new ArgumentOutOfRangeException(nameof(index));
+                throw new IndexOutOfRangeException(nameof(index));
             }
         }
 
@@ -257,7 +257,7 @@ namespace CommonLib
             }
             else
             {
-                throw new ArgumentOutOfRangeException(nameof(index));
+                throw new IndexOutOfRangeException(nameof(index));
             }
         }
 
@@ -281,14 +281,13 @@ namespace CommonLib
         }
 
 
-        public void  ReplaceInt16(int index,short value)
+        public void  SetInt16(int index,short value)
         {
-            if (index + sizeof(short) > _headerIndex)
+            if(!IsReadIndexValid(index,sizeof(short)))
             {
-                throw new ArgumentOutOfRangeException();
+                throw new IndexOutOfRangeException();
             }
 
-            //XBitConverter.ShortToByteArray(value, this, index);
             SetByte(index, (byte)((value >> 8) & 0xFF));
             SetByte(NextIndex(index), (byte)(value & 0xFF));
         }
@@ -326,8 +325,13 @@ namespace CommonLib
             }
 
             int startIndex = _headerIndex;
-            
-            XBitConverter.IntToByteArray(value, this);
+
+
+            Enqueue((byte)((value >> 24) & 0xFF)); // 상위 바이트 (1번째 바이트)
+            Enqueue((byte)((value >> 16) & 0xFF)); // 2번째 바이트
+            Enqueue((byte)((value >> 8) & 0xFF));  // 3번째 바이트
+            Enqueue((byte)(value & 0xFF));         // 하위 바이트 (4번째 바이트)
+
 
             //tailIndex = MoveIndex(tailIndex, count);            
             //size += count;
@@ -352,7 +356,7 @@ namespace CommonLib
         {
             if(index > _buffer.Capacity)
             {
-                throw new ArgumentOutOfRangeException();
+                throw new IndexOutOfRangeException();
             }
             _buffer[index] = value;
 

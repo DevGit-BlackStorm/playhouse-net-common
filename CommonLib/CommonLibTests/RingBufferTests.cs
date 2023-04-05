@@ -15,185 +15,341 @@ namespace CommonLibTests
         }
 
         [Fact]
-        public void Enqueue_WhenCalledWithSingleByte_ShouldAddByteToBuffer()
+        public void Enqueue_ShouldAddAnItemToTheBuffer()
         {
-            // Arrange
-            var buffer = new RingBuffer(capacity: 10);
-
-            // Act
-            buffer.Enqueue((byte)42);
-
-            // Assert
-            buffer.Count.Should().Be(1);
-            buffer.Peek().Should().Be(42);
+            RingBuffer ringBuffer = new RingBuffer(4);
+            ringBuffer.Enqueue(1);
+            ringBuffer.Count.Should().Be(1);
+            ringBuffer.Peek().Should().Be(1);
         }
 
         [Fact]
-        public void Enqueue_WhenCalledWithByteArray_ShouldAddAllBytesToBuffer()
+        public void Enqueue_ShouldResizeTheBufferWhenItsCapacityIsReached()
         {
-            // Arrange
-            var buffer = new RingBuffer(capacity: 10);
-            var data = new byte[] { 1, 2, 3 };
-
-            // Act
-            buffer.Enqueue(data);
-
-            // Assert
-            buffer.Count.Should().Be(3);
-            buffer.Peek().Should().Be(1);
+            RingBuffer ringBuffer = new RingBuffer(4, 8);
+            ringBuffer.Enqueue(1);
+            ringBuffer.Enqueue(2);
+            ringBuffer.Enqueue(3);
+            ringBuffer.Enqueue(4);
+            ringBuffer.Count.Should().Be(4);
+            ringBuffer.Capacity.Should().BeGreaterThanOrEqualTo(4);
+            ringBuffer.Enqueue(5);
+            ringBuffer.Count.Should().Be(5);
+            ringBuffer.Capacity.Should().BeGreaterThanOrEqualTo(8);
+            ringBuffer.Peek().Should().Be(1);
         }
 
         [Fact]
-        public void Dequeue_WhenCalledWithNonEmptyBuffer_ShouldRemoveAndReturnFirstByte()
+        public void Enqueue_ShouldThrowAnExceptionWhenTheBufferHasReachedMaximumCapacity()
         {
-            // Arrange
-            var buffer = new RingBuffer(capacity: 10);
-            buffer.Enqueue((byte)1);
-            buffer.Enqueue((byte)2);
-            buffer.Enqueue((byte)3);
-
-            // Act
-            var result = buffer.Dequeue();
-
-            // Assert
-            result.Should().Be(1);
-            buffer.Count.Should().Be(2);
-            buffer.Peek().Should().Be(2);
+            RingBuffer ringBuffer = new RingBuffer(4, 8);
+            ringBuffer.Enqueue(1);
+            ringBuffer.Enqueue(2);
+            ringBuffer.Enqueue(3);
+            ringBuffer.Enqueue(4);
+            ringBuffer.Enqueue(5);
+            ringBuffer.Enqueue(6);
+            ringBuffer.Enqueue(7);
+            ringBuffer.Enqueue(8);
+            ringBuffer.Count.Should().Be(8);
+            ringBuffer.Capacity.Should().BeGreaterThanOrEqualTo(8);
+            Action action = () =>
+            {
+                for (int i = 0; i < ringBuffer.Capacity ; i++){
+                    ringBuffer.Enqueue(9);
+                }
+            };
+            
+            action.Should().Throw<InvalidOperationException>();
         }
 
         [Fact]
-        public void Dequeue_WhenCalledWithEmptyBuffer_ShouldThrowInvalidOperationException()
+        public void EnqueueData_ShouldAddAnArrayOfDataToTheBuffer()
         {
-            // Arrange
-            var buffer = new RingBuffer(capacity: 10);
-
-            // Act & Assert
-            buffer.Invoking(b => b.Dequeue()).Should().Throw<InvalidOperationException>();
+            RingBuffer ringBuffer = new RingBuffer(4, 8);
+            byte[] data = new byte[] { 1, 2, 3, 4 };
+            ringBuffer.Enqueue(data);
+            ringBuffer.Count.Should().Be(4);
+            ringBuffer.Peek().Should().Be(1);
         }
 
         [Fact]
-        public void Clear_WhenCalled_ShouldRemoveAllBytesFromBuffer()
+        public void ResizeBuffer_ShouldResizeTheBufferAndPreserveItsContents()
         {
-            // Arrange
-            var buffer = new RingBuffer(capacity: 10);
-            buffer.Enqueue((byte)1);
-            buffer.Enqueue((byte)2);
-            buffer.Enqueue((byte)3);
+            RingBuffer ringBuffer = new RingBuffer(4, 8);
+            ringBuffer.Enqueue(1);
+            ringBuffer.Enqueue(2);
+            ringBuffer.Enqueue(3);
+            ringBuffer.Enqueue(4);
+            ringBuffer.Count.Should().Be(4);
+            ringBuffer.Capacity.Should().BeGreaterThanOrEqualTo(4);
 
-            // Act
-            buffer.Clear();
+            ringBuffer.Enqueue(5);
+            ringBuffer.Capacity.Should().BeGreaterThanOrEqualTo(8);
+            ringBuffer.Count.Should().Be(5);
 
-            // Assert
-            buffer.Count.Should().Be(0);
-            buffer.Invoking(b => b.Dequeue()).Should().Throw<InvalidOperationException>();
-            //buffer.Peek().Should().Be(default);
+            ringBuffer.Peek().Should().Be(1);
         }
 
         [Fact]
-        public void Read_WhenCalledWithNonEmptyBuffer_ShouldReadBytesIntoProvidedBuffer()
+        public void Dequeue_ShouldRemoveAnItemFromTheBuffer()
         {
-            // Arrange
-            var buffer = new RingBuffer(capacity: 10);
-            buffer.Enqueue(new byte[] { 1, 2, 3 });
-
-            var data = new byte[2];
-
-            // Act
-            var bytesRead = buffer.Read(data, offset: 0, count: 2);
-
-            // Assert
-            bytesRead.Should().Be(2);
-            data.Should().BeEquivalentTo(new byte[] { 1, 2 });
+            var ringBuffer = new RingBuffer(4, 8);
+            ringBuffer.Enqueue(1);
+            ringBuffer.Enqueue(2);
+            ringBuffer.Enqueue(3);
+            ringBuffer.Count.Should().Be(3);
+            ringBuffer.Dequeue().Should().Be(1);
+            ringBuffer.Count.Should().Be(2);
+            ringBuffer.Peek().Should().Be(2);
         }
 
         [Fact]
-        public void Write_WhenCalledWithByteArray_ShouldAddAllBytesToBuffer()
+        public void Dequeue_ShouldThrowAnExceptionWhenTheBufferIsEmpty()
         {
-            // Arrange
-            var buffer = new RingBuffer(capacity: 10);
-            var data = new byte[] { 1, 2, 3 };
-
-            // Act
-            buffer.Write(data, offset: 0, count: 3);
-
-            // Assert
-            buffer.Count.Should().Be(3);
-            buffer.Peek().Should().Be(1);
+            var ringBuffer = new RingBuffer(4);
+            Action action = () => ringBuffer.Dequeue();
+            action.Should().Throw<InvalidOperationException>();
         }
 
         [Fact]
-        public void PeekInt16_WhenCalledWithValidIndex_ShouldReturnCorrectValue()
+        public void Peek_ShouldReturnTheFirstItemInTheBuffer()
         {
-            // Arrange
-            var buffer = new RingBuffer(capacity: 10);
-            buffer.WriteInt16(value: 0x1234);
-            buffer.WriteInt16(value: 0x5678);
-
-            // Act
-            var result = buffer.PeekInt16(0);
-
-            // Assert
-            result.Should().Be(0x1234);
+            var ringBuffer = new RingBuffer(4);
+            ringBuffer.Enqueue(1);
+            ringBuffer.Enqueue(2);
+            ringBuffer.Enqueue(3);
+            ringBuffer.Peek().Should().Be(1);
         }
 
         [Fact]
-        public void PeekInt16_WhenCalledWithInvalidIndex_ShouldThrowArgumentOutOfRangeException()
+        public void Peek_ShouldThrowAnExceptionWhenTheBufferIsEmpty()
         {
-            // Arrange
-            var buffer = new RingBuffer(capacity: 10);
-
-            // Act & Assert
-            buffer.Invoking(b => b.PeekInt16( 0)).Should().Throw<ArgumentOutOfRangeException>();
+            var ringBuffer = new RingBuffer(4);
+            Action action = () => ringBuffer.Peek();
+            action.Should().Throw<InvalidOperationException>();
         }
 
         [Fact]
-        public void PeekInt32_WhenCalledWithValidIndex_ShouldReturnCorrectValue()
+        public void Clear_ShouldClearTheBuffer()
         {
-            // Arrange
-            var buffer = new RingBuffer(capacity: 10);
-            buffer.WriteInt32(value: 0x12345678);
-
-            // Act
-            var result = buffer.PeekInt32(0);
-
-            // Assert
-            result.Should().Be(0x12345678);
+            var ringBuffer = new RingBuffer(4);
+            ringBuffer.Enqueue(1);
+            ringBuffer.Enqueue(2);
+            ringBuffer.Enqueue(3);
+            ringBuffer.Count.Should().Be(3);
+            ringBuffer.Clear();
+            ringBuffer.Count.Should().Be(0);
         }
 
         [Fact]
-        public void PeekInt32_WhenCalledWithInvalidIndex_ShouldThrowArgumentOutOfRangeException()
+        public void Clear_ShouldRemoveTheSpecifiedNumberOfItemsFromTheBuffer()
         {
-            // Arrange
-            var buffer = new RingBuffer(capacity: 10);
-
-            // Act & Assert
-            buffer.Invoking(b => b.PeekInt32( 0)).Should().Throw<ArgumentOutOfRangeException>();
+            var ringBuffer = new RingBuffer(4);
+            ringBuffer.Enqueue(1);
+            ringBuffer.Enqueue(2);
+            ringBuffer.Enqueue(3);
+            ringBuffer.Count.Should().Be(3);
+            ringBuffer.Clear(2);
+            ringBuffer.Count.Should().Be(1);
+            ringBuffer.Peek().Should().Be(3);
+        }
+        [Fact]
+        public void Clear_ShouldThrowAnExceptionWhenTryingToClearMoreItemsThanTheCurrentSizeOfTheBuffer()
+        {
+            var ringBuffer = new RingBuffer(4);
+            ringBuffer.Enqueue(1);
+            ringBuffer.Enqueue(2);
+            ringBuffer.Enqueue(3);
+            ringBuffer.Count.Should().Be(3);
+            Action action = () => ringBuffer.Clear(4);
+            action.Should().Throw<ArgumentException>();
         }
 
         [Fact]
-        public void ReadInt16_WhenCalledWithNonEmptyBuffer_ShouldReadAndRemoveFirstValue()
+        public void Read_ShouldReadItemsFromTheBuffer()
         {
-            // Arrange
-            var buffer = new RingBuffer(capacity: 10);
-            buffer.WriteInt16(value: 0x1234);
-            var index = buffer.WriteInt16(value: 0x5678);
-
-            // Assert
-            buffer.PeekInt16(index).Should().Be(0x5678);
+            var ringBuffer = new RingBuffer(4);
+            ringBuffer.Enqueue(1);
+            ringBuffer.Enqueue(2);
+            ringBuffer.Enqueue(3);
+            ringBuffer.Count.Should().Be(3);
+            var buffer = new byte[2];
+            ringBuffer.Read(buffer, 0, 2).Should().Be(2);
+            buffer.Should().Equal(new byte[] { 1, 2 });
+            ringBuffer.Count.Should().Be(1);
+            ringBuffer.Peek().Should().Be(3);
         }
 
         [Fact]
-        public void ReadInt32_WhenCalledWithNonEmptyBuffer_ShouldReadAndRemoveFirstValue()
+        public void Read_ShouldReturnZeroWhenTheBufferIsEmpty()
         {
-            // Arrange
-            var buffer = new RingBuffer(capacity: 10);
-            buffer.WriteInt32(value: 0x12345678);
-            var index = buffer.WriteInt32(value: 0x5678DEF0);
-
-            // Assert
-            buffer.PeekInt32(index).Should().Be(0x5678DEF0);
+            var ringBuffer = new RingBuffer(4);
+            var buffer = new byte[2];
+            ringBuffer.Read(buffer, 0, 2).Should().Be(0);
         }
 
+        [Fact]
+        public void Write_ShouldWriteItemsToTheBuffer()
+        {
+            var ringBuffer = new RingBuffer(4);
+            var data = new byte[] { 1, 2, 3, 4 };
+            ringBuffer.Write(data, 0, 4);
+            ringBuffer.Count.Should().Be(4);
+            ringBuffer.Peek().Should().Be(1);
+        }
+
+        [Fact]
+        public void Write_ShouldResizeTheBufferWhenItsCapacityIsReached()
+        {
+            var ringBuffer = new RingBuffer(4, 16);
+            var data = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+            ringBuffer.Write(data, 0, 8);
+            ringBuffer.Count.Should().Be(8);
+            ringBuffer.Capacity.Should().BeGreaterThanOrEqualTo(8);
+            ringBuffer.Write(data, 0, 1);
+            ringBuffer.Count.Should().Be(9);
+            ringBuffer.Capacity.Should().BeGreaterThanOrEqualTo(16);
+            ringBuffer.Peek().Should().Be(1);
+        }
+        [Fact]
+        public void PeekInt16_ShouldThrowAnExceptionWhenTryingToPeekOutsideOfTheBuffer()
+        {
+            var ringBuffer = new RingBuffer(4);
+            Action action = () => ringBuffer.PeekInt16(2);
+            action.Should().Throw<IndexOutOfRangeException>();
+        }
+
+        [Fact]
+        public void PeekInt32_ShouldReturnTheCorrectIntValueWhenPeekingAtTheSpecifiedOffset()
+        {
+            var ringBuffer = new RingBuffer(8);
+            ringBuffer.WriteInt32(0x12345678);
+            ringBuffer.WriteInt32(0x5678DEF0);
+            ringBuffer.PeekInt32(4).Should().Be(0x5678DEF0);
+        }
+
+        [Fact]
+        public void PeekInt32_ShouldThrowAnExceptionWhenTryingToPeekOutsideOfTheBuffer()
+        {
+            var ringBuffer = new RingBuffer(4);
+            Action action = () => ringBuffer.PeekInt32(4);
+            action.Should().Throw<IndexOutOfRangeException>();
+        }
+
+        [Fact]
+        public void ReadInt16_ShouldReturnTheCorrectShortValueAndUpdateTheBuffer()
+        {
+            var ringBuffer = new RingBuffer(4);
+            ringBuffer.WriteInt16(0x1234);
+            ringBuffer.WriteInt16(0x5678);
+            ringBuffer.ReadInt16().Should().Be(0x1234);
+            ringBuffer.Count.Should().Be(2);
+            ringBuffer.Peek().Should().Be(0x56);
+        }
+        [Fact]
+        public void ReadInt16_ShouldThrowAnExceptionWhenTryingToReadOutsideOfTheBuffer()
+        {
+            var ringBuffer = new RingBuffer(4);
+            Action action = () => ringBuffer.ReadInt16();
+            action.Should().Throw<IndexOutOfRangeException>();
+        }
+
+        [Fact]
+        public void ReadInt32_ShouldReturnTheCorrectIntValueAndUpdateTheBuffer()
+        {
+            var ringBuffer = new RingBuffer(8);
+            ringBuffer.WriteInt32(0x12345678);
+            ringBuffer.WriteInt32(0x5678DEF0);
+            ringBuffer.ReadInt32().Should().Be(0x12345678);
+            ringBuffer.Count.Should().Be(4);
+            ringBuffer.Peek().Should().Be(0x56);
+        }
+
+        [Fact]
+        public void ReadInt32_ShouldThrowAnExceptionWhenTryingToReadOutsideOfTheBuffer()
+        {
+            var ringBuffer = new RingBuffer(4);
+            Action action = () => ringBuffer.ReadInt32();
+            action.Should().Throw<IndexOutOfRangeException>();
+        }
+
+        [Fact]
+        public void SetInt16_ShouldSetTheShortValueAtTheSpecifiedIndex()
+        {
+            var ringBuffer = new RingBuffer(4);
+            ringBuffer.WriteInt16(0x1234);
+            ringBuffer.WriteInt16(0x5678);
+            ringBuffer.SetInt16(2, 0x4321);
+            ringBuffer.PeekInt16(2).Should().Be(0x4321);
+        }
+
+        [Fact]
+        public void SetInt16_ShouldThrowAnExceptionWhenTryingToSetAValueOutsideOfTheBuffer()
+        {
+            var ringBuffer = new RingBuffer(4);
+            Action action = () => ringBuffer.SetInt16(2, 0x1234);
+            action.Should().Throw<IndexOutOfRangeException>();
+        }
+
+        [Fact]
+        public void WriteInt16_ShouldWriteTheShortValueToTheBufferAndReturnTheStartIndex()
+        {
+            var ringBuffer = new RingBuffer(8);
+            ringBuffer.WriteInt16(0x1234);
+            ringBuffer.WriteInt16(0x5678);
+            ringBuffer.WriteInt16(0x4321).Should().Be(4);
+            ringBuffer.Count.Should().Be(6);
+            ringBuffer.Peek().Should().Be(0x12);
+        }
+
+        [Fact]
+        public void WriteInt16_ShouldResizeTheBufferWhenItsCapacityIsReached()
+        {
+            var ringBuffer = new RingBuffer(4, 8);
+            ringBuffer.WriteInt16(0x1234);
+            ringBuffer.WriteInt16(0x5678);
+            ringBuffer.WriteInt16(0x4321).Should().Be(4);
+            ringBuffer.Count.Should().Be(6);
+            ringBuffer.Capacity.Should().BeGreaterThanOrEqualTo(8);
+            ringBuffer.WriteInt16(0x4321).Should().Be(6);
+            ringBuffer.Count.Should().Be(8);
+            ringBuffer.Capacity.Should().BeGreaterThanOrEqualTo(8);
+        }
+
+        [Fact]
+        public void WriteInt32_ShouldWriteTheIntValueToTheBufferAndReturnTheStartIndex()
+        {
+            var ringBuffer = new RingBuffer(16);
+            ringBuffer.WriteInt32(0x12345678);
+            ringBuffer.WriteInt32(0x5678DEF0);
+            ringBuffer.WriteInt32(0x11223344).Should().Be(8);
+            ringBuffer.Count.Should().Be(12);
+            ringBuffer.Peek().Should().Be(0x12);
+        }
+
+        [Fact]
+        public void WriteInt32_ShouldResizeTheBufferWhenItsCapacityIsReached()
+        {
+            var ringBuffer = new RingBuffer(8, 16);
+            ringBuffer.WriteInt32(0x12345678);
+            ringBuffer.WriteInt32(0x5678DEF0);
+            ringBuffer.WriteInt32(0x11223344).Should().Be(8);
+            ringBuffer.Count.Should().Be(12);
+            ringBuffer.Capacity.Should().BeGreaterThanOrEqualTo(16);
+            ringBuffer.WriteInt32(0x55667788).Should().Be(12);
+            ringBuffer.Count.Should().Be(16);
+            ringBuffer.Capacity.Should().BeGreaterThanOrEqualTo(16);
+        }
+
+        [Fact]
+        public void ToArray_ShouldReturnAnArrayWithTheContentsOfTheBuffer()
+        {
+            var ringBuffer = new RingBuffer(4);
+            ringBuffer.WriteInt16(0x1234);
+            ringBuffer.WriteInt16(0x5678);
+            ringBuffer.Buffer().AsSpan(0,ringBuffer.Count).ToArray().Should().Equal(new byte[] { 0x12, 0x34, 0x56, 0x78 });
+        }
 
     }
 
