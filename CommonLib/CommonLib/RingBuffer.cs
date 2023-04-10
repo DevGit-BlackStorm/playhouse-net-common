@@ -200,6 +200,15 @@ namespace CommonLib
             }
         }
 
+        public void Write(ReadOnlySpan<byte> buffer)
+        {
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                Enqueue(buffer[i]);
+            }
+        }
+
+
         private bool IsReadIndexValid(int index, int size)
         {
             for (int i = 0; i < size;i++)
