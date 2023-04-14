@@ -200,6 +200,11 @@ namespace CommonLib
             }
         }
 
+        public void Write(byte b)
+        {
+            Enqueue(b);
+        }
+
         public void Write(ReadOnlySpan<byte> buffer)
         {
             for (int i = 0; i < buffer.Length; i++)
@@ -369,6 +374,11 @@ namespace CommonLib
             }
             _buffer[index] = value;
 
+        }
+
+        public byte ReadByte()
+        {
+            return Dequeue();
         }
     }
 }
