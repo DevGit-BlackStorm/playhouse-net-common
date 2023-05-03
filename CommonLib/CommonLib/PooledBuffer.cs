@@ -10,7 +10,7 @@ namespace CommonLib
 
         private static BufferManager? _bufferManager;
 
-        public static void Init(int maxBufferPoolSize = 1024 * 1024 * 10)
+        public static void Init(int maxBufferPoolSize = 1024 * 1024 * 100)
         {
             _bufferManager = BufferManager.CreateBufferManager(maxBufferPoolSize, 64*1024);
         }
