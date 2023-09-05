@@ -11,9 +11,9 @@ namespace CommonLib
             if (BitConverter.IsLittleEndian)
             {
                 // 하이 바이트 (상위 8비트)를 추출하고 왼쪽으로 8비트 시프트
-                short highByte = (short)((value & 0xFF00) >> 8);
+                ushort highByte = (ushort)((value & 0xFF00) >> 8);
                 // 로우 바이트 (하위 8비트)를 추출하고 오른쪽으로 8비트 시프트
-                short lowByte = (short)((value & 0x00FF) << 8);
+                ushort lowByte = (ushort)((value & 0x00FF) << 8);
 
                 // 변환된 하이 바이트와 로우 바이트를 합칩니다.
                ushort networkOrderValue = (ushort)(highByte | lowByte);
@@ -98,14 +98,14 @@ namespace CommonLib
             buffer[offset + 3] = (byte)(value & 0xFF);         // 하위 바이트 (4번째 바이트)
         }
 
-        public static short ByteArrayToShort(byte[] buffer, int offset, int size)
+        public static ushort ByteArrayToShort(byte[] buffer, int offset, int size)
         {
             if (size != 2)
             {
                 throw new ArgumentException("Byte array must have a length of 2.");
             }
 
-            short result = (short)((buffer[offset] << 8) | buffer[offset + 1]);
+            ushort result = (ushort)((buffer[offset] << 8) | buffer[offset + 1]);
             return result;
         }
 
@@ -136,8 +136,8 @@ namespace CommonLib
         {
             if (BitConverter.IsLittleEndian)
             {
-                short highByte = (short)((networkOrderValue & 0xFF00) >> 8);
-                short lowByte = (short)((networkOrderValue & 0x00FF) << 8);
+                ushort highByte = (ushort)((networkOrderValue & 0xFF00) >> 8);
+                ushort lowByte = (ushort)((networkOrderValue & 0x00FF) << 8);
 
                 ushort hostOrderValue = (ushort)(highByte | lowByte);
                 return hostOrderValue;
