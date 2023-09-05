@@ -237,9 +237,9 @@ namespace CommonLib
             }
             return index;
         }
-        private short GetInt16(int index)
+        private ushort GetInt16(int index)
         {
-            return  (short)((_buffer[index] << 8) | _buffer[NextIndex(index)]);
+            return  (ushort)((_buffer[index] << 8) | _buffer[NextIndex(index)]);
             //return XBitConverter.ByteArrayToShort(buffer[index], buffer[ NextIndex(index)]);
         }
         private int GetInt32(int index)
@@ -249,9 +249,9 @@ namespace CommonLib
         }
 
 
-        public short PeekInt16(int index)
+        public ushort PeekInt16(int index)
         {
-            if (IsReadIndexValid(index, sizeof(short)))
+            if (IsReadIndexValid(index, sizeof(ushort)))
             {
                 return GetInt16(index);
             }
@@ -274,11 +274,11 @@ namespace CommonLib
             }
         }
 
-        public short ReadInt16()
+        public ushort ReadInt16()
         {
             
-            short data = PeekInt16(_readerIndex);
-            int count = sizeof(short);
+            ushort data = PeekInt16(_readerIndex);
+            int count = sizeof(ushort);
             _readerIndex  = MoveIndex(_readerIndex, count);
             _size -= count;
             return data;
@@ -305,10 +305,10 @@ namespace CommonLib
             SetByte(NextIndex(index), (byte)(value & 0xFF));
         }
 
-        public int WriteInt16(short value)
+        public int WriteInt16(ushort value)
         {
 
-            int count = sizeof(short);
+            int count = sizeof(ushort);
 
             if (_size + count > Capacity)
             {

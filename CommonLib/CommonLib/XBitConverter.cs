@@ -6,7 +6,7 @@ namespace CommonLib
 {
     public class XBitConverter
     {
-        public static short ToNetworkOrder(short value)
+        public static ushort ToNetworkOrder(ushort value)
         {
             if (BitConverter.IsLittleEndian)
             {
@@ -16,7 +16,7 @@ namespace CommonLib
                 short lowByte = (short)((value & 0x00FF) << 8);
 
                 // 변환된 하이 바이트와 로우 바이트를 합칩니다.
-                short networkOrderValue = (short)(highByte | lowByte);
+               ushort networkOrderValue = (ushort)(highByte | lowByte);
                 return networkOrderValue;
             }
             else
@@ -26,7 +26,7 @@ namespace CommonLib
 
         }
 
-        public static void ToByteArray(short value, byte[] buffer, int offset, int size)
+        public static void ToByteArray(ushort value, byte[] buffer, int offset, int size)
         {
             if (size < 2)
             {
@@ -70,7 +70,7 @@ namespace CommonLib
             buffer[offset + 3] = (byte)(value & 0xFF);         // 하위 바이트 (4번째 바이트)
         }
 
-        public static void ShortToByteArray(short value, RingBuffer queue)
+        public static void ShortToByteArray(ushort value, RingBuffer queue)
         {   
             queue.Enqueue((byte)((value >> 8) & 0xFF));  // 상위 바이트
             queue.Enqueue((byte)(value & 0xFF));         // 하위 바이트 (4번째 바이트)
@@ -86,7 +86,7 @@ namespace CommonLib
         //    //buffer[queue.NextIndex(index)] = (byte)(value & 0xFF);
         //}
 
-        public static void ShortToByteArray(short value, byte[] buffer, int offset)
+        public static void ShortToByteArray(ushort value, byte[] buffer, int offset)
         {
             if (buffer.Length < offset + 2)
             {
@@ -132,14 +132,14 @@ namespace CommonLib
         //    int result = (byte1 << 24) | (byte2 << 16) | (byte3 << 8) | byte4;
         //    return result;
         //}
-        public static short ToHostOrder(short networkOrderValue)
+        public static ushort ToHostOrder(ushort networkOrderValue)
         {
             if (BitConverter.IsLittleEndian)
             {
                 short highByte = (short)((networkOrderValue & 0xFF00) >> 8);
                 short lowByte = (short)((networkOrderValue & 0x00FF) << 8);
 
-                short hostOrderValue = (short)(highByte | lowByte);
+                ushort hostOrderValue = (ushort)(highByte | lowByte);
                 return hostOrderValue;
             }
             else
