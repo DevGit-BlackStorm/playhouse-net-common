@@ -215,17 +215,17 @@ namespace CommonLib
 
         private bool IsReadIndexValid(int index, int size)
         {
-            for (int i = 0; i < size;i++)
-            {
-                if (!(index >= _readerIndex && index < _headerIndex))
-                {
-                    return false;
-                }
-                else
-                {
-                    index = NextIndex(index);
-                }
-            }
+            //for (int i = 0; i < size;i++)
+            //{
+            //    if (!(index >= _readerIndex && index < _headerIndex))
+            //    {
+            //        return false;
+            //    }
+            //    else
+            //    {
+            //        index = NextIndex(index);
+            //    }
+            //}
             return true;
         }
 
@@ -251,6 +251,12 @@ namespace CommonLib
 
         public ushort PeekInt16(int index)
         {
+            if (_size < sizeof(short)) // 버퍼에 충분한 데이터가 있는지 확인
+            {
+                throw new InvalidOperationException("Not enough data in the buffer to read Int16");
+            }
+
+
             if (IsReadIndexValid(index, sizeof(ushort)))
             {
                 return GetInt16(index);
@@ -264,6 +270,11 @@ namespace CommonLib
 
         public int PeekInt32(int index)
         {
+            if (_size < sizeof(int)) // 버퍼에 충분한 데이터가 있는지 확인
+            {
+                throw new InvalidOperationException("Not enough data in the buffer to read Int32");
+            }
+
             if (IsReadIndexValid(index, sizeof(int)))
             {
                 return GetInt32(index);
@@ -276,7 +287,12 @@ namespace CommonLib
 
         public ushort ReadInt16()
         {
-            
+            if (_size < sizeof(short)) // 버퍼에 충분한 데이터가 있는지 확인
+            {
+                throw new InvalidOperationException("Not enough data in the buffer to read Int16");
+            }
+
+
             ushort data = PeekInt16(_readerIndex);
             int count = sizeof(ushort);
             _readerIndex  = MoveIndex(_readerIndex, count);
@@ -286,6 +302,11 @@ namespace CommonLib
 
         public int ReadInt32()
         {
+            if (_size < sizeof(int)) // 버퍼에 충분한 데이터가 있는지 확인
+            {
+                throw new InvalidOperationException("Not enough data in the buffer to read Int32");
+            }
+
             int data = PeekInt32(_readerIndex);
             int count = sizeof(int);
             _readerIndex = MoveIndex(_readerIndex, count);
@@ -365,7 +386,7 @@ namespace CommonLib
             }
         }
 
-        internal void SetByte(int index, byte value)
+        public void SetByte(int index, byte value)
         {
             if(index > _buffer.Capacity)
             {
