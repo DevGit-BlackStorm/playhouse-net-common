@@ -135,7 +135,7 @@ namespace PlayHouse.Utils
         {
             _typeName = typeof(T).FullName ?? typeof(T).Name;
         }
-        
+
         public void  Trace(Func<string> messageFactory,[CallerMemberName] string methodName = "")
         {
             if (LogLevel.Trace >= LoggerConfigure.LogLevel)
