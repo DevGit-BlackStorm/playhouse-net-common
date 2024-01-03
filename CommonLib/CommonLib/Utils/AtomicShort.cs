@@ -31,6 +31,11 @@ namespace PlayHouse.Utils
             while (Interlocked.CompareExchange(ref atomicInteger, next, current) != current);
             return (ushort)next;
         }
+
+        public void Clear()
+        {
+            Interlocked.Exchange(ref atomicInteger,  0);
+        }
     }
 
 }
