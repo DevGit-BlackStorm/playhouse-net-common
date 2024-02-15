@@ -48,13 +48,13 @@ namespace CommonLib
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-           queue.Write(buffer, offset, count);
+            queue.Write(buffer, offset, count);
         }
     }
 
 
 
-    public class RingBuffer
+    public class RingBuffer : IDisposable
     {
         private PooledBuffer _buffer;
         private int _readerIndex;
@@ -62,7 +62,7 @@ namespace CommonLib
         private int _size;
         private readonly int _maxCapacity;
 
-       
+
         public RingBuffer(int capacity, int maxCapacity)
         {
             if (capacity > maxCapacity)
@@ -75,7 +75,7 @@ namespace CommonLib
             _size = 0;
             this._maxCapacity = maxCapacity;
         }
-        public RingBuffer(int capacity) : this(capacity, capacity ) { }
+        public RingBuffer(int capacity) : this(capacity, capacity) { }
 
         public int Capacity => _buffer.Capacity;
         public int Count => _size;
@@ -87,7 +87,7 @@ namespace CommonLib
             {
                 ResizeBuffer(_buffer.Capacity * 2);
             }
-                        
+
             _buffer[_headerIndex] = item;
             _headerIndex = NextIndex(_headerIndex);
             _size++;
@@ -140,9 +140,9 @@ namespace CommonLib
 
         internal int NextIndex(int index)
         {
-            return  (index + 1) % _buffer.Capacity;
+            return (index + 1) % _buffer.Capacity;
         }
-        
+
 
         public byte Peek()
         {
@@ -163,6 +163,16 @@ namespace CommonLib
             _size = 0;
         }
 
+        public void WriteCount(int count)
+        {
+            if (_size + count > Capacity)
+            {
+                throw new InvalidOperationException("Queue has reached maximum capacity");
+            }
+
+            _size += count;
+        }
+
         public void Clear(int count)
         {
             if (count > _size)
@@ -170,11 +180,11 @@ namespace CommonLib
                 throw new ArgumentException(nameof(count));
             }
 
-            for(int i=0; i < count;++i)
+            for (int i = 0; i < count; ++i)
             {
                 _readerIndex = NextIndex(_readerIndex);
             }
-            
+
             _size -= count;
         }
 
@@ -229,9 +239,9 @@ namespace CommonLib
             return true;
         }
 
-        private int MoveIndex(int index,int count)
+        private int MoveIndex(int index, int count)
         {
-            for(int i = 0; i < count; i++)
+            for (int i = 0; i < count; i++)
             {
                 index = NextIndex(index);
             }
@@ -239,12 +249,12 @@ namespace CommonLib
         }
         private ushort GetInt16(int index)
         {
-            return  (ushort)((_buffer[index] << 8) | _buffer[NextIndex(index)]);
+            return (ushort)((_buffer[index] << 8) | _buffer[NextIndex(index)]);
             //return XBitConverter.ByteArrayToShort(buffer[index], buffer[ NextIndex(index)]);
         }
         private int GetInt32(int index)
         {
-            return (_buffer[index] << 24) | (_buffer[index = NextIndex(index)] << 16) | (_buffer[index = NextIndex(index)] << 8) |( _buffer[NextIndex(index)]);
+            return (_buffer[index] << 24) | (_buffer[index = NextIndex(index)] << 16) | (_buffer[index = NextIndex(index)] << 8) | (_buffer[NextIndex(index)]);
             //return XBitConverter.ByteArrayToInt(buffer[index], buffer[index = NextIndex(index)], buffer[index = NextIndex(index)], buffer[ NextIndex(index)]);
         }
 
@@ -295,7 +305,7 @@ namespace CommonLib
 
             ushort data = PeekInt16(_readerIndex);
             int count = sizeof(ushort);
-            _readerIndex  = MoveIndex(_readerIndex, count);
+            _readerIndex = MoveIndex(_readerIndex, count);
             _size -= count;
             return data;
         }
@@ -315,9 +325,9 @@ namespace CommonLib
         }
 
 
-        public void  SetInt16(int index,short value)
+        public void SetInt16(int index, short value)
         {
-            if(!IsReadIndexValid(index,sizeof(short)))
+            if (!IsReadIndexValid(index, sizeof(short)))
             {
                 throw new IndexOutOfRangeException();
             }
@@ -333,7 +343,7 @@ namespace CommonLib
 
             if (_size + count > Capacity)
             {
-                ResizeBuffer(_buffer.Capacity *2);
+                ResizeBuffer(_buffer.Capacity * 2);
             }
 
             int startIndex = _headerIndex;
@@ -378,9 +388,9 @@ namespace CommonLib
             return _buffer.Data;
         }
 
-        public void Read(PooledBuffer body,int count)
+        public void Read(PooledBuffer body, int count)
         {
-            for(int i=0; i < count; i++)
+            for (int i = 0; i < count; i++)
             {
                 body.Append(Dequeue());
             }
@@ -388,7 +398,7 @@ namespace CommonLib
 
         public void SetByte(int index, byte value)
         {
-            if(index > _buffer.Capacity)
+            if (index > _buffer.Capacity)
             {
                 throw new IndexOutOfRangeException();
             }
@@ -399,6 +409,11 @@ namespace CommonLib
         public byte ReadByte()
         {
             return Dequeue();
+        }
+
+        public void Dispose()
+        {
+            _buffer.Dispose();
         }
     }
 }
