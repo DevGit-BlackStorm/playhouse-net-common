@@ -7,6 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.ServiceModel.Primitives" Version="4.10.2" />
+    <PackageReference Include="CoreWCF.Primitives" Version="1.5.1" />
   </ItemGroup>
 </Project>

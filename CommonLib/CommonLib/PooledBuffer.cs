@@ -1,6 +1,6 @@
-﻿using System;
+﻿using CoreWCF.Channels;
+using System;
 using System.Diagnostics;
-using System.ServiceModel.Channels;
 using System.Text;
 
 namespace CommonLib
