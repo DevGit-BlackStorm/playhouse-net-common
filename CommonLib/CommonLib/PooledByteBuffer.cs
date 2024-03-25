@@ -38,6 +38,7 @@ namespace PlayHouse
         public Memory<byte> AsMemory()
         {
             return new Memory<byte>(_buffer.Data, _readerIndex,_size);
+            //return new Memory<byte>(_buffer.Data, 0, _size);
         }
 
         virtual internal protected int NextIndex(int index)
@@ -234,7 +235,7 @@ namespace PlayHouse
         {
             for (int i = 0; i < count; i++)
             {
-                body.Append(Dequeue());
+                body.Enqueue(Dequeue());
             }
         }
 
