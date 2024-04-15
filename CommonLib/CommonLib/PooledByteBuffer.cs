@@ -51,7 +51,7 @@ namespace PlayHouse
         }
 
 
-        private int MoveIndex(int index, int count)
+        public int MoveIndex(int index, int count)
         {
             for (int i = 0; i < count; i++)
             {
@@ -196,6 +196,31 @@ namespace PlayHouse
             }
         }
 
+        public void Write(string value)
+        {
+            // UTF-8로 인코딩할 때 예상되는 최대 바이트 수 계산
+            int maxByteCount = Encoding.UTF8.GetMaxByteCount(value.Length);
+
+            // 스택에 충분한 크기를 할당할 수 없으면 예외 발생
+            if (maxByteCount > 1024) // 예제로 1024바이트를 한계로 설정
+            {
+                throw new InvalidOperationException("String too large for stack allocation");
+            }
+
+            // 스택에 메모리 할당
+            Span<byte> buffer = stackalloc byte[maxByteCount];
+
+            // 실제로 사용된 바이트 수
+            int bytesUsed = Encoding.UTF8.GetBytes(value, buffer);
+
+            // 버퍼에 바이트 쓰기
+            for (int i = 0; i < bytesUsed; i++)
+            {
+                Enqueue(buffer[i]);
+            }
+        }
+
+
         public void Write(byte b)
         {
             Enqueue(b);
@@ -215,11 +240,28 @@ namespace PlayHouse
         {
             return  (ushort)((GetByte(index) << 8) | GetByte(NextIndex(index)));
         }
+
+        private int GetInt24(int index)
+        {
+            return (GetByte(index) << 16) | (GetByte(index = NextIndex(index)) << 8) | (GetByte(NextIndex(index)));
+        }
         private int GetInt32(int index)
         {
             return (GetByte(index) << 24) | (GetByte(index = NextIndex(index)) << 16) | (GetByte(index = NextIndex(index)) << 8) | (GetByte(NextIndex(index)));
         }
 
+        
+        private long GetInt64(int index)
+        {
+            return ((long)GetByte(index) << 56) |
+                   ((long)GetByte(index = NextIndex(index)) << 48) |
+                   ((long)GetByte(index = NextIndex(index)) << 40) |
+                   ((long)GetByte(index = NextIndex(index)) << 32) |
+                   ((long)GetByte(index = NextIndex(index)) << 24) |
+                   ((long)GetByte(index = NextIndex(index)) << 16) |
+                   ((long)GetByte(index = NextIndex(index)) << 8) |
+                   GetByte(NextIndex(index)); // 여기에서만 long 캐스팅
+        }
 
         public ushort PeekInt16(int index)
         {
@@ -229,6 +271,16 @@ namespace PlayHouse
             }
 
             return GetInt16(index);
+        }
+
+        public int PeekInt24(int index)
+        {
+            if (_size < 3) // 버퍼에 충분한 데이터가 있는지 확인
+            {
+                throw new InvalidOperationException("Not enough data in the buffer to read Int16");
+            }
+
+            return GetInt24(index);
         }
 
         public void Read(PooledByteBuffer body, int count)
@@ -250,6 +302,16 @@ namespace PlayHouse
             return GetInt32(index);
         }
 
+        public long PeekInt64(int index)
+        {
+            if (_size < sizeof(long)) // 버퍼에 충분한 데이터가 있는지 확인
+            {
+                throw new InvalidOperationException("Not enough data in the buffer to read Int32");
+            }
+
+            return GetInt64(index);
+        }
+
         public ushort ReadInt16()
         {
             if (_size < sizeof(short)) // 버퍼에 충분한 데이터가 있는지 확인
@@ -264,6 +326,21 @@ namespace PlayHouse
             return data;
         }
 
+        public int ReadInt24()
+        {
+            if (_size < sizeof(int) - 1) // 버퍼에 충분한 데이터가 있는지 확인
+            {
+                throw new InvalidOperationException("Not enough data in the buffer to read Int32");
+            }
+
+            int data = PeekInt24(_readerIndex);
+            int count = 3;
+            _readerIndex = MoveIndex(_readerIndex, count);
+            _size -= count;
+            return data;
+        }
+
+
         public int ReadInt32()
         {
             if (_size < sizeof(int)) // 버퍼에 충분한 데이터가 있는지 확인
@@ -273,6 +350,20 @@ namespace PlayHouse
 
             int data = PeekInt32(_readerIndex);
             int count = sizeof(int);
+            _readerIndex = MoveIndex(_readerIndex, count);
+            _size -= count;
+            return data;
+        }
+
+        public long ReadInt64()
+        {
+            if (_size < sizeof(long)) // 버퍼에 충분한 데이터가 있는지 확인
+            {
+                throw new InvalidOperationException("Not enough data in the buffer to read Int32");
+            }
+
+            long data = PeekInt64(_readerIndex);
+            int count = sizeof(long);
             _readerIndex = MoveIndex(_readerIndex, count);
             _size -= count;
             return data;
@@ -313,6 +404,25 @@ namespace PlayHouse
             return startIndex;
         }
 
+        public int WriteInt24(int value)
+        {
+            int count = sizeof(int) - 1;
+
+            if (_size + count > _buffer.Capacity)
+            {
+                ResizeBuffer(_buffer.Capacity * 2);
+            }
+
+            int startIndex = _headerIndex;
+
+
+            Enqueue((byte)((value >> 16) & 0xFF)); // 2번째 바이트
+            Enqueue((byte)((value >> 8) & 0xFF));  // 3번째 바이트
+            Enqueue((byte)(value & 0xFF));         // 하위 바이트 (4번째 바이트)
+
+            return startIndex;
+        }
+
         public int WriteInt32(int value)
         {
             int count = sizeof(int);
@@ -333,6 +443,64 @@ namespace PlayHouse
 
             return startIndex;
         }
+
+
+
+        public int WriteInt64(long value)
+        {
+            int count = sizeof(long);
+
+            if (_size + count > _buffer.Capacity)
+            {
+                ResizeBuffer(_buffer.Capacity * 2);
+            }
+
+            int startIndex = _headerIndex;
+
+            Enqueue((byte)((value >> 56) & 0xFF)); // 가장 상위 바이트
+            Enqueue((byte)((value >> 48) & 0xFF));
+            Enqueue((byte)((value >> 40) & 0xFF));
+            Enqueue((byte)((value >> 32) & 0xFF));
+            Enqueue((byte)((value >> 24) & 0xFF)); // 상위 바이트 (1번째 바이트)
+            Enqueue((byte)((value >> 16) & 0xFF)); // 2번째 바이트
+            Enqueue((byte)((value >> 8) & 0xFF));  // 3번째 바이트
+            Enqueue((byte)(value & 0xFF));         // 하위 바이트 (4번째 바이트)
+
+
+            return startIndex;
+        }
+
+        public string ReadString(int msgSize, Encoding encoding = null)
+        {
+            // encoding이 null이면 UTF-8로 설정
+            encoding ??= Encoding.UTF8;
+
+            // msgSize가 스택 할당에 안전한지 확인합니다.
+            // 이 값은 예시이며, 애플리케이션의 필요와 제약에 맞게 조정해야 합니다.
+            // 스택 오버플로우를 방지하기 위해 일반적으로 안전한 한계는 1024바이트 정도입니다.
+            if (msgSize > 1024) // 예시 한계값, 필요에 따라 조정
+            {
+                throw new ArgumentException("메시지 크기가 스택 할당에 너무 큽니다.");
+            }
+
+            // 스택에 메모리를 할당합니다.
+            Span<byte> stringBytes = stackalloc byte[msgSize];
+
+            // 버퍼에서 stringBytes 스팬으로 바이트를 읽습니다.
+            for (int i = 0; i < msgSize; i++)
+            {
+                if (_size == 0)
+                {
+                    throw new InvalidOperationException("버퍼에 충분한 데이터가 없습니다.");
+                }
+                stringBytes[i] = Dequeue();
+            }
+
+            // 지정된 인코딩을 사용하여 바이트를 문자열로 변환합니다.
+            string result = encoding.GetString(stringBytes);
+            return result;
+        }
+
 
         public byte[] Buffer()
         {

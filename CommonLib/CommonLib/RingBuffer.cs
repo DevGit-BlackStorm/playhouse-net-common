@@ -424,6 +424,17 @@ namespace CommonLib
         {
         }
 
+        public int PeekNextIndex(int offSet)
+        {
+            int readerIndex = ReaderIndex;
+            for(int i=0;i < offSet; i++)
+            {
+                readerIndex = NextIndex(readerIndex);
+            }
+            return readerIndex;
+        }
+ 
+
         protected internal override int NextIndex(int index)
         {
             return (index + 1) % Capacity;
