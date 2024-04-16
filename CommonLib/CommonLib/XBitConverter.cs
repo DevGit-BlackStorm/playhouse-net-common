@@ -132,32 +132,32 @@ namespace CommonLib
         //    int result = (byte1 << 24) | (byte2 << 16) | (byte3 << 8) | byte4;
         //    return result;
         //}
-        public static ushort ToHostOrder(ushort networkOrderValue)
-        {
-            if (BitConverter.IsLittleEndian)
-            {
-                ushort highByte = (ushort)((networkOrderValue & 0xFF00) >> 8);
-                ushort lowByte = (ushort)((networkOrderValue & 0x00FF) << 8);
+        //public static ushort ToHostOrder(ushort networkOrderValue)
+        //{
+        //    if (BitConverter.IsLittleEndian)
+        //    {
+        //        short highByte = (short)((networkOrderValue & 0xFF00) >> 8);
+        //        short lowByte = (short)((networkOrderValue & 0x00FF) << 8);
 
-                ushort hostOrderValue = (ushort)(highByte | lowByte);
-                return hostOrderValue;
-            }
-            else
-            {
-                return networkOrderValue;
-            }
-        }
+        //        ushort hostOrderValue = (ushort)(highByte | lowByte);
+        //        return hostOrderValue;
+        //    }
+        //    else
+        //    {
+        //        return networkOrderValue;
+        //    }
+        //}
 
-        public static int ToHostOrder(int networkOrderValue)
-        {
-            if (BitConverter.IsLittleEndian)
-            {
-                return (networkOrderValue << 24) | ((networkOrderValue & 0xFF00) << 8) | ((networkOrderValue >> 8) & 0xFF00) | ((networkOrderValue >> 24) & 0xFF);
-            }
-            else
-            {
-                return networkOrderValue;
-            }
-        }
+        //public static int ToHostOrder(int networkOrderValue)
+        //{
+        //    if (BitConverter.IsLittleEndian)
+        //    {
+        //        return (networkOrderValue << 24) | ((networkOrderValue & 0xFF00) << 8) | ((networkOrderValue >> 8) & 0xFF00) | ((networkOrderValue >> 24) & 0xFF);
+        //    }
+        //    else
+        //    {
+        //        return networkOrderValue;
+        //    }
+        //}
     }
 }
