@@ -470,7 +470,7 @@ namespace PlayHouse
             return startIndex;
         }
 
-        public string ReadString(int msgSize, Encoding encoding = null)
+        public string ReadString(int msgSize, Encoding? encoding = null)
         {
             // encoding이 null이면 UTF-8로 설정
             encoding ??= Encoding.UTF8;

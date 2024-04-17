@@ -49,6 +49,48 @@ namespace CommonLib
                 return value;
             }
         }
+
+        public static ulong ToNetworkOrder(ulong value)
+        {
+            if (BitConverter.IsLittleEndian)
+            {
+                return ((value & 0xFF00000000000000) >> 56) |
+                       ((value & 0x00FF000000000000) >> 40) |
+                       ((value & 0x0000FF0000000000) >> 24) |
+                       ((value & 0x000000FF00000000) >> 8) |
+                       ((value & 0x00000000FF000000) << 8) |
+                       ((value & 0x0000000000FF0000) << 24) |
+                       ((value & 0x000000000000FF00) << 40) |
+                       ((value & 0x00000000000000FF) << 56);
+            }
+            else
+            {
+                return value;
+            }
+        }
+
+        public static long ToNetworkOrder(long value)
+        {
+            if (BitConverter.IsLittleEndian)
+            {
+                return unchecked(
+                           ((value & (long)0xFF00000000000000) >> 56) |
+                           ((value & 0x00FF000000000000) >> 40) |
+                           ((value & 0x0000FF0000000000) >> 24) |
+                           ((value & 0x000000FF00000000) >> 8) |
+                           ((value & 0x00000000FF000000) << 8) |
+                           ((value & 0x0000000000FF0000) << 24) |
+                           ((value & 0x000000000000FF00) << 40) |
+                           ((value & 0x00000000000000FF) << 56)
+                       );
+            }
+            else
+            {
+                return value;
+            }
+        }
+
+
         //public static void IntToByteArray(int value, RingBuffer queue)
         //{
 
@@ -159,5 +201,47 @@ namespace CommonLib
                 return networkOrderValue;
             }
         }
+        public static ulong ToHostOrder(ulong networkOrderValue)
+        {
+            if (BitConverter.IsLittleEndian)
+            {
+                return ((networkOrderValue << 56) & 0xFF00000000000000) |
+                       ((networkOrderValue << 40) & 0x00FF000000000000) |
+                       ((networkOrderValue << 24) & 0x0000FF0000000000) |
+                       ((networkOrderValue << 8) & 0x000000FF00000000) |
+                       ((networkOrderValue >> 8) & 0x00000000FF000000) |
+                       ((networkOrderValue >> 24) & 0x0000000000FF0000) |
+                       ((networkOrderValue >> 40) & 0x000000000000FF00) |
+                       ((networkOrderValue >> 56) & 0x00000000000000FF);
+            }
+            else
+            {
+                return networkOrderValue;
+            }
+        }
+
+        public static long ToHostOrder(long networkOrderValue)
+        {
+            if (BitConverter.IsLittleEndian)
+            {
+                return ((networkOrderValue << 56) & unchecked((long)0xFF00000000000000L)) |
+                       ((networkOrderValue << 40) & 0x00FF000000000000L) |
+                       ((networkOrderValue << 24) & 0x0000FF0000000000L) |
+                       ((networkOrderValue << 8) & 0x000000FF00000000L) |
+                       ((networkOrderValue >> 8) & 0x00000000FF000000L) |
+                       ((networkOrderValue >> 24) & 0x0000000000FF0000L) |
+                       ((networkOrderValue >> 40) & 0x000000000000FF00L) |
+                       ((networkOrderValue >> 56) & 0x00000000000000FFL);
+            }
+            else
+            {
+                return networkOrderValue;
+            }
+        }
+
+
+
+
+
     }
 }
