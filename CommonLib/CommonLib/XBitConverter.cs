@@ -70,11 +70,11 @@ namespace CommonLib
             buffer[offset + 3] = (byte)(value & 0xFF);         // 하위 바이트 (4번째 바이트)
         }
 
-        public static void ShortToByteArray(ushort value, RingBuffer queue)
-        {   
-            queue.Enqueue((byte)((value >> 8) & 0xFF));  // 상위 바이트
-            queue.Enqueue((byte)(value & 0xFF));         // 하위 바이트 (4번째 바이트)
-        }
+        //public static void ShortToByteArray(ushort value, RingBuffer queue)
+        //{   
+        //    queue.Enqueue((byte)((value >> 8) & 0xFF));  // 상위 바이트
+        //    queue.Enqueue((byte)(value & 0xFF));         // 하위 바이트 (4번째 바이트)
+        //}
 
         //public static void ShortToByteArray(short value, RingBuffer queue,int index)
         //{
@@ -126,38 +126,38 @@ namespace CommonLib
             return result;
         }
 
-        //public static int ByteArrayToInt(byte byte1, byte byte2, byte byte3, byte byte4)
-        //{
+        public static int ByteArrayToInt(byte byte1, byte byte2, byte byte3, byte byte4)
+        {
 
-        //    int result = (byte1 << 24) | (byte2 << 16) | (byte3 << 8) | byte4;
-        //    return result;
-        //}
-        //public static ushort ToHostOrder(ushort networkOrderValue)
-        //{
-        //    if (BitConverter.IsLittleEndian)
-        //    {
-        //        short highByte = (short)((networkOrderValue & 0xFF00) >> 8);
-        //        short lowByte = (short)((networkOrderValue & 0x00FF) << 8);
+            int result = (byte1 << 24) | (byte2 << 16) | (byte3 << 8) | byte4;
+            return result;
+        }
+        public static ushort ToHostOrder(ushort networkOrderValue)
+        {
+            if (BitConverter.IsLittleEndian)
+            {
+                short highByte = (short)((networkOrderValue & 0xFF00) >> 8);
+                short lowByte = (short)((networkOrderValue & 0x00FF) << 8);
 
-        //        ushort hostOrderValue = (ushort)(highByte | lowByte);
-        //        return hostOrderValue;
-        //    }
-        //    else
-        //    {
-        //        return networkOrderValue;
-        //    }
-        //}
+                ushort hostOrderValue = (ushort)(highByte | lowByte);
+                return hostOrderValue;
+            }
+            else
+            {
+                return networkOrderValue;
+            }
+        }
 
-        //public static int ToHostOrder(int networkOrderValue)
-        //{
-        //    if (BitConverter.IsLittleEndian)
-        //    {
-        //        return (networkOrderValue << 24) | ((networkOrderValue & 0xFF00) << 8) | ((networkOrderValue >> 8) & 0xFF00) | ((networkOrderValue >> 24) & 0xFF);
-        //    }
-        //    else
-        //    {
-        //        return networkOrderValue;
-        //    }
-        //}
+        public static int ToHostOrder(int networkOrderValue)
+        {
+            if (BitConverter.IsLittleEndian)
+            {
+                return (networkOrderValue << 24) | ((networkOrderValue & 0xFF00) << 8) | ((networkOrderValue >> 8) & 0xFF00) | ((networkOrderValue >> 24) & 0xFF);
+            }
+            else
+            {
+                return networkOrderValue;
+            }
+        }
     }
 }
