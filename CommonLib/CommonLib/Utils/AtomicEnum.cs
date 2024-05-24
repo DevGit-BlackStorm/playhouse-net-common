@@ -27,8 +27,8 @@ namespace PlayHouse.Utils
         //}
         public bool CompareAndSet(TEnum expectedValue, TEnum newValue)
         {
-            int expectedIntValue = Convert.ToInt32(expectedValue);
-            int newIntValue = Convert.ToInt32(newValue);
+            var expectedIntValue = Convert.ToInt32(expectedValue);
+            var newIntValue = Convert.ToInt32(newValue);
             return Interlocked.CompareExchange(ref _value, newIntValue, expectedIntValue) == expectedIntValue;
         }
 

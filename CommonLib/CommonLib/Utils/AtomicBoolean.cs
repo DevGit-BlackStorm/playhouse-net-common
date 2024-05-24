@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading;
 
 namespace PlayHouse.Utils
 {
@@ -18,8 +13,8 @@ namespace PlayHouse.Utils
 
         public bool CompareAndSet(bool expected, bool update)
         {
-            int expectedValue = expected ? 1 : 0;
-            int newValue = update ? 1 : 0;
+            var expectedValue = expected ? 1 : 0;
+            var newValue = update ? 1 : 0;
             return Interlocked.CompareExchange(ref _value, newValue, expectedValue) == expectedValue;
         }
 
@@ -33,5 +28,4 @@ namespace PlayHouse.Utils
             Interlocked.Exchange(ref _value, newValue ? 1 : 0);
         }
     }
-
 }

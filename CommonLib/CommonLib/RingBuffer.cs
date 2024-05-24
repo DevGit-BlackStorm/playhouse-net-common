@@ -1,10 +1,9 @@
-﻿using PlayHouse;
-using System;
+﻿using System;
 using System.IO;
+using PlayHouse;
 
 namespace CommonLib
 {
-
     public class RingBufferStream : Stream
     {
         private readonly RingBuffer queue;
@@ -52,7 +51,6 @@ namespace CommonLib
             queue.Write(buffer, offset, count);
         }
     }
-
 
 
     public class RingBuffer : PooledByteBuffer
@@ -426,14 +424,15 @@ namespace CommonLib
 
         public int PeekNextIndex(int offSet)
         {
-            int readerIndex = ReaderIndex;
-            for(int i=0;i < offSet; i++)
+            var readerIndex = ReaderIndex;
+            for (var i = 0; i < offSet; i++)
             {
                 readerIndex = NextIndex(readerIndex);
             }
+
             return readerIndex;
         }
- 
+
 
         protected internal override int NextIndex(int index)
         {

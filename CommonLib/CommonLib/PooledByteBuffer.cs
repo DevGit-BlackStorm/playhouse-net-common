@@ -1,17 +1,14 @@
-﻿using CommonLib;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Text;
+using CommonLib;
 
 namespace PlayHouse
 {
     public class PooledByteBuffer : IDisposable
     {
-        private PooledBuffer _buffer;
-        private int _readerIndex;
-        private int _headerIndex;
-        private int _size;
         private readonly int _maxCapacity;
+        private PooledBuffer _buffer;
+        private int _headerIndex;
 
         public PooledByteBuffer(int capacity, int maxCapacity)
         {
@@ -19,61 +16,75 @@ namespace PlayHouse
             {
                 throw new ArgumentException("capacity cannot be greater than maxCapacity");
             }
-            _buffer = new PooledBuffer(capacity);// new byte[capacity];
-            _readerIndex = 0;
+
+            _buffer = new PooledBuffer(capacity); // new byte[capacity];
+            ReaderIndex = 0;
             _headerIndex = 0;
-            _size = 0;
-            this._maxCapacity = maxCapacity;
+            Count = 0;
+            _maxCapacity = maxCapacity;
         }
-        public PooledByteBuffer(int capacity) : this(capacity, capacity) { }
+
+        public PooledByteBuffer(int capacity) : this(capacity, capacity)
+        {
+        }
 
         public int Capacity => _buffer.Capacity;
-        public int Count => _size;
-        public int ReaderIndex => _readerIndex;
+        public int Count { get; private set; }
+
+        public int ReaderIndex { get; private set; }
+
+        public void Dispose()
+        {
+            _buffer.Dispose();
+        }
 
         public Span<byte> AsSpan()
         {
             return _buffer.AsSpan();
         }
+
         public Memory<byte> AsMemory()
         {
-            return new Memory<byte>(_buffer.Data, _readerIndex,_size);
+            return new Memory<byte>(_buffer.Data, ReaderIndex, Count);
             //return new Memory<byte>(_buffer.Data, 0, _size);
         }
 
-        virtual internal protected int NextIndex(int index)
+        protected internal virtual int NextIndex(int index)
         {
-            if(index + 1 > _buffer.Capacity)
+            if (index + 1 > _buffer.Capacity)
             {
                 throw new Exception("index is over");
             }
-            return (index + 1);
+
+            return index + 1;
         }
 
 
         public int MoveIndex(int index, int count)
         {
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 index = NextIndex(index);
             }
+
             return index;
         }
+
         public void Enqueue(byte item)
         {
-            if (_size == _buffer.Capacity)
+            if (Count == _buffer.Capacity)
             {
                 ResizeBuffer(_buffer.Capacity * 2);
             }
 
             _buffer[_headerIndex] = item;
             _headerIndex = NextIndex(_headerIndex);
-            _size++;
+            Count++;
         }
 
         public void Enqueue(byte[] data)
         {
-            foreach (byte b in data)
+            foreach (var b in data)
             {
                 Enqueue(b);
             }
@@ -91,11 +102,11 @@ namespace PlayHouse
                 throw new InvalidOperationException("Queue has reached maximum capacity");
             }
 
-            PooledBuffer newBuffer = new PooledBuffer(newCapacity);
+            var newBuffer = new PooledBuffer(newCapacity);
 
-            _headerIndex = _size;
+            _headerIndex = Count;
 
-            while (_size != 0)
+            while (Count != 0)
             {
                 newBuffer.Append(Dequeue());
             }
@@ -103,76 +114,75 @@ namespace PlayHouse
             _buffer.Dispose();
             _buffer = newBuffer;
 
-            _size = _headerIndex;
-            _readerIndex = 0;
+            Count = _headerIndex;
+            ReaderIndex = 0;
         }
 
         public byte Dequeue()
         {
-            if (_size == 0)
+            if (Count == 0)
             {
                 throw new InvalidOperationException("Queue is empty");
             }
 
-            byte item = _buffer[_readerIndex];
-            _buffer[_readerIndex] = default;
-            _readerIndex = NextIndex(_readerIndex);
-            _size--;
+            var item = _buffer[ReaderIndex];
+            _buffer[ReaderIndex] = default;
+            ReaderIndex = NextIndex(ReaderIndex);
+            Count--;
             return item;
         }
 
-  
 
         public byte Peek()
         {
-            if (_size == 0)
+            if (Count == 0)
             {
                 throw new InvalidOperationException("Queue is empty");
             }
 
-            return _buffer[_readerIndex];
+            return _buffer[ReaderIndex];
         }
 
         public void Clear()
         {
             //Array.Clear(buffer, 0, buffer.Length);
             _buffer.Clear();
-            _readerIndex = 0;
+            ReaderIndex = 0;
             _headerIndex = 0;
-            _size = 0;
+            Count = 0;
         }
 
         public void WriteCount(int count)
         {
-            if (_size + count > _buffer.Capacity)
+            if (Count + count > _buffer.Capacity)
             {
                 throw new InvalidOperationException("Queue has reached maximum capacity");
             }
 
-            _size += count;
+            Count += count;
         }
 
         public void Clear(int count)
         {
-            if (count > _size)
+            if (count > Count)
             {
                 throw new ArgumentException(nameof(count));
             }
 
-            for (int i = 0; i < count; ++i)
+            for (var i = 0; i < count; ++i)
             {
-                _readerIndex = NextIndex(_readerIndex);
+                ReaderIndex = NextIndex(ReaderIndex);
             }
             //_readerIndex += count;
 
-            _size -= count;
+            Count -= count;
         }
 
         public int Read(byte[] buffer, int offset, int count)
         {
-            int bytesRead = 0;
+            var bytesRead = 0;
 
-            while (bytesRead < count && _size > 0)
+            while (bytesRead < count && Count > 0)
             {
                 buffer[offset + bytesRead] = Dequeue();
                 bytesRead++;
@@ -180,17 +190,18 @@ namespace PlayHouse
 
             return bytesRead;
         }
+
         public void Write(ReadOnlySpan<byte> buffer)
         {
-            for (int i = 0; i < buffer.Length; i++)
+            for (var i = 0; i < buffer.Length; i++)
             {
                 Enqueue(buffer[i]);
             }
         }
-  
+
         public void Write(byte[] buffer, int offset, int count)
         {
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 Enqueue(buffer[offset + i]);
             }
@@ -199,7 +210,7 @@ namespace PlayHouse
         public void Write(string value)
         {
             // UTF-8로 인코딩할 때 예상되는 최대 바이트 수 계산
-            int maxByteCount = Encoding.UTF8.GetMaxByteCount(value.Length);
+            var maxByteCount = Encoding.UTF8.GetMaxByteCount(value.Length);
 
             // 스택에 충분한 크기를 할당할 수 없으면 예외 발생
             if (maxByteCount > 1024) // 예제로 1024바이트를 한계로 설정
@@ -211,10 +222,10 @@ namespace PlayHouse
             Span<byte> buffer = stackalloc byte[maxByteCount];
 
             // 실제로 사용된 바이트 수
-            int bytesUsed = Encoding.UTF8.GetBytes(value, buffer);
+            var bytesUsed = Encoding.UTF8.GetBytes(value, buffer);
 
             // 버퍼에 바이트 쓰기
-            for (int i = 0; i < bytesUsed; i++)
+            for (var i = 0; i < bytesUsed; i++)
             {
                 Enqueue(buffer[i]);
             }
@@ -228,29 +239,31 @@ namespace PlayHouse
 
         private byte GetByte(int index)
         {
-            if(index < 0 || index > _buffer.Capacity)
+            if (index < 0 || index > _buffer.Capacity)
             {
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            return _buffer[index];  
+            return _buffer[index];
         }
 
         private ushort GetInt16(int index)
         {
-            return  (ushort)((GetByte(index) << 8) | GetByte(NextIndex(index)));
+            return (ushort)((GetByte(index) << 8) | GetByte(NextIndex(index)));
         }
 
         private int GetInt24(int index)
         {
-            return (GetByte(index) << 16) | (GetByte(index = NextIndex(index)) << 8) | (GetByte(NextIndex(index)));
-        }
-        private int GetInt32(int index)
-        {
-            return (GetByte(index) << 24) | (GetByte(index = NextIndex(index)) << 16) | (GetByte(index = NextIndex(index)) << 8) | (GetByte(NextIndex(index)));
+            return (GetByte(index) << 16) | (GetByte(index = NextIndex(index)) << 8) | GetByte(NextIndex(index));
         }
 
-        
+        private int GetInt32(int index)
+        {
+            return (GetByte(index) << 24) | (GetByte(index = NextIndex(index)) << 16) |
+                   (GetByte(index = NextIndex(index)) << 8) | GetByte(NextIndex(index));
+        }
+
+
         private long GetInt64(int index)
         {
             return ((long)GetByte(index) << 56) |
@@ -265,7 +278,7 @@ namespace PlayHouse
 
         public ushort PeekInt16(int index)
         {
-            if (_size < sizeof(short)) // 버퍼에 충분한 데이터가 있는지 확인
+            if (Count < sizeof(short)) // 버퍼에 충분한 데이터가 있는지 확인
             {
                 throw new InvalidOperationException("Not enough data in the buffer to read Int16");
             }
@@ -275,7 +288,7 @@ namespace PlayHouse
 
         public int PeekInt24(int index)
         {
-            if (_size < 3) // 버퍼에 충분한 데이터가 있는지 확인
+            if (Count < 3) // 버퍼에 충분한 데이터가 있는지 확인
             {
                 throw new InvalidOperationException("Not enough data in the buffer to read Int16");
             }
@@ -285,7 +298,7 @@ namespace PlayHouse
 
         public void Read(PooledByteBuffer body, int count)
         {
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
             {
                 body.Enqueue(Dequeue());
             }
@@ -294,7 +307,7 @@ namespace PlayHouse
 
         public int PeekInt32(int index)
         {
-            if (_size < sizeof(int)) // 버퍼에 충분한 데이터가 있는지 확인
+            if (Count < sizeof(int)) // 버퍼에 충분한 데이터가 있는지 확인
             {
                 throw new InvalidOperationException("Not enough data in the buffer to read Int32");
             }
@@ -304,7 +317,7 @@ namespace PlayHouse
 
         public long PeekInt64(int index)
         {
-            if (_size < sizeof(long)) // 버퍼에 충분한 데이터가 있는지 확인
+            if (Count < sizeof(long)) // 버퍼에 충분한 데이터가 있는지 확인
             {
                 throw new InvalidOperationException("Not enough data in the buffer to read Int32");
             }
@@ -314,58 +327,58 @@ namespace PlayHouse
 
         public ushort ReadInt16()
         {
-            if (_size < sizeof(short)) // 버퍼에 충분한 데이터가 있는지 확인
+            if (Count < sizeof(short)) // 버퍼에 충분한 데이터가 있는지 확인
             {
                 throw new InvalidOperationException("Not enough data in the buffer to read Int16");
             }
 
-            ushort data = PeekInt16(_readerIndex);
-            int count = sizeof(ushort);
-            _readerIndex = MoveIndex(_readerIndex, count);
-            _size -= count;
+            var data = PeekInt16(ReaderIndex);
+            var count = sizeof(ushort);
+            ReaderIndex = MoveIndex(ReaderIndex, count);
+            Count -= count;
             return data;
         }
 
         public int ReadInt24()
         {
-            if (_size < sizeof(int) - 1) // 버퍼에 충분한 데이터가 있는지 확인
+            if (Count < sizeof(int) - 1) // 버퍼에 충분한 데이터가 있는지 확인
             {
                 throw new InvalidOperationException("Not enough data in the buffer to read Int32");
             }
 
-            int data = PeekInt24(_readerIndex);
-            int count = 3;
-            _readerIndex = MoveIndex(_readerIndex, count);
-            _size -= count;
+            var data = PeekInt24(ReaderIndex);
+            var count = 3;
+            ReaderIndex = MoveIndex(ReaderIndex, count);
+            Count -= count;
             return data;
         }
 
 
         public int ReadInt32()
         {
-            if (_size < sizeof(int)) // 버퍼에 충분한 데이터가 있는지 확인
+            if (Count < sizeof(int)) // 버퍼에 충분한 데이터가 있는지 확인
             {
                 throw new InvalidOperationException("Not enough data in the buffer to read Int32");
             }
 
-            int data = PeekInt32(_readerIndex);
-            int count = sizeof(int);
-            _readerIndex = MoveIndex(_readerIndex, count);
-            _size -= count;
+            var data = PeekInt32(ReaderIndex);
+            var count = sizeof(int);
+            ReaderIndex = MoveIndex(ReaderIndex, count);
+            Count -= count;
             return data;
         }
 
         public long ReadInt64()
         {
-            if (_size < sizeof(long)) // 버퍼에 충분한 데이터가 있는지 확인
+            if (Count < sizeof(long)) // 버퍼에 충분한 데이터가 있는지 확인
             {
                 throw new InvalidOperationException("Not enough data in the buffer to read Int32");
             }
 
-            long data = PeekInt64(_readerIndex);
-            int count = sizeof(long);
-            _readerIndex = MoveIndex(_readerIndex, count);
-            _size -= count;
+            var data = PeekInt64(ReaderIndex);
+            var count = sizeof(long);
+            ReaderIndex = MoveIndex(ReaderIndex, count);
+            Count -= count;
             return data;
         }
 
@@ -378,84 +391,82 @@ namespace PlayHouse
 
         public void SetByte(int index, byte value)
         {
-            if (index < 0 || index > _buffer.Capacity )
+            if (index < 0 || index > _buffer.Capacity)
             {
                 throw new IndexOutOfRangeException();
             }
-            _buffer[index] = value;
 
+            _buffer[index] = value;
         }
 
         public int WriteInt16(ushort value)
         {
+            var count = sizeof(ushort);
 
-            int count = sizeof(ushort);
-
-            if (_size + count > _buffer.Capacity)
+            if (Count + count > _buffer.Capacity)
             {
                 ResizeBuffer(_buffer.Capacity * 2);
             }
 
-            int startIndex = _headerIndex;
+            var startIndex = _headerIndex;
 
-            Enqueue((byte)((value >> 8) & 0xFF));  // 상위 바이트
-            Enqueue((byte)(value & 0xFF));         // 하위 바이트 (4번째 바이트)
+            Enqueue((byte)((value >> 8) & 0xFF)); // 상위 바이트
+            Enqueue((byte)(value & 0xFF)); // 하위 바이트 (4번째 바이트)
 
             return startIndex;
         }
 
         public int WriteInt24(int value)
         {
-            int count = sizeof(int) - 1;
+            var count = sizeof(int) - 1;
 
-            if (_size + count > _buffer.Capacity)
+            if (Count + count > _buffer.Capacity)
             {
                 ResizeBuffer(_buffer.Capacity * 2);
             }
 
-            int startIndex = _headerIndex;
+            var startIndex = _headerIndex;
 
 
             Enqueue((byte)((value >> 16) & 0xFF)); // 2번째 바이트
-            Enqueue((byte)((value >> 8) & 0xFF));  // 3번째 바이트
-            Enqueue((byte)(value & 0xFF));         // 하위 바이트 (4번째 바이트)
+            Enqueue((byte)((value >> 8) & 0xFF)); // 3번째 바이트
+            Enqueue((byte)(value & 0xFF)); // 하위 바이트 (4번째 바이트)
 
             return startIndex;
         }
 
         public int WriteInt32(int value)
         {
-            int count = sizeof(int);
+            var count = sizeof(int);
 
-            if (_size + count > _buffer.Capacity)
+            if (Count + count > _buffer.Capacity)
             {
                 ResizeBuffer(_buffer.Capacity * 2);
             }
 
-            int startIndex = _headerIndex;
+            var startIndex = _headerIndex;
 
 
             Enqueue((byte)((value >> 24) & 0xFF)); // 상위 바이트 (1번째 바이트)
             Enqueue((byte)((value >> 16) & 0xFF)); // 2번째 바이트
-            Enqueue((byte)((value >> 8) & 0xFF));  // 3번째 바이트
-            Enqueue((byte)(value & 0xFF));         // 하위 바이트 (4번째 바이트)
+            Enqueue((byte)((value >> 8) & 0xFF)); // 3번째 바이트
+            Enqueue((byte)(value & 0xFF)); // 하위 바이트 (4번째 바이트)
 
 
             return startIndex;
         }
 
 
-
         public int WriteInt64(long value)
         {
-            int count = sizeof(long);
+            var count = sizeof(long);
 
-            if (_size + count > _buffer.Capacity)
+            if (Count + count > _buffer.Capacity)
             {
                 ResizeBuffer(_buffer.Capacity * 2);
             }
 
-            int startIndex = _headerIndex;
+            var startIndex = _headerIndex;
 
             Enqueue((byte)((value >> 56) & 0xFF)); // 가장 상위 바이트
             Enqueue((byte)((value >> 48) & 0xFF));
@@ -463,8 +474,8 @@ namespace PlayHouse
             Enqueue((byte)((value >> 32) & 0xFF));
             Enqueue((byte)((value >> 24) & 0xFF)); // 상위 바이트 (1번째 바이트)
             Enqueue((byte)((value >> 16) & 0xFF)); // 2번째 바이트
-            Enqueue((byte)((value >> 8) & 0xFF));  // 3번째 바이트
-            Enqueue((byte)(value & 0xFF));         // 하위 바이트 (4번째 바이트)
+            Enqueue((byte)((value >> 8) & 0xFF)); // 3번째 바이트
+            Enqueue((byte)(value & 0xFF)); // 하위 바이트 (4번째 바이트)
 
 
             return startIndex;
@@ -487,17 +498,18 @@ namespace PlayHouse
             Span<byte> stringBytes = stackalloc byte[msgSize];
 
             // 버퍼에서 stringBytes 스팬으로 바이트를 읽습니다.
-            for (int i = 0; i < msgSize; i++)
+            for (var i = 0; i < msgSize; i++)
             {
-                if (_size == 0)
+                if (Count == 0)
                 {
                     throw new InvalidOperationException("버퍼에 충분한 데이터가 없습니다.");
                 }
+
                 stringBytes[i] = Dequeue();
             }
 
             // 지정된 인코딩을 사용하여 바이트를 문자열로 변환합니다.
-            string result = encoding.GetString(stringBytes);
+            var result = encoding.GetString(stringBytes);
             return result;
         }
 
@@ -506,16 +518,10 @@ namespace PlayHouse
         {
             return _buffer.Data;
         }
-        public void Dispose()
-        {
-            _buffer.Dispose();
-        }
 
         public byte ReadByte()
         {
             return Dequeue();
         }
-
-
     }
 }
