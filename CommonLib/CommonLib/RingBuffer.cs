@@ -6,11 +6,11 @@ namespace CommonLib
 {
     public class RingBufferStream : Stream
     {
-        private readonly RingBuffer queue;
+        private readonly RingBuffer _queue;
 
         public RingBufferStream(RingBuffer queue)
         {
-            this.queue = queue;
+            this._queue = queue;
         }
 
         public override bool CanRead => true;
@@ -19,7 +19,7 @@ namespace CommonLib
 
         public override bool CanWrite => true;
 
-        public override long Length => queue.Count;
+        public override long Length => _queue.Count;
 
         public override long Position
         {
@@ -33,7 +33,7 @@ namespace CommonLib
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            return queue.Read(buffer, offset, count);
+            return _queue.Read(buffer, offset, count);
         }
 
         public override long Seek(long offset, SeekOrigin origin)
@@ -48,7 +48,7 @@ namespace CommonLib
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            queue.Write(buffer, offset, count);
+            _queue.Write(buffer, offset, count);
         }
     }
 
