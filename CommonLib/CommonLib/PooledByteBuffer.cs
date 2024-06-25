@@ -193,7 +193,7 @@ namespace PlayHouse
             }
         }
 
-        public void Write(byte[] buffer, int offset, int count)
+        public void Write(byte[] buffer, long offset, long count)
         {
             for (var i = 0; i < count; i++)
             {
@@ -201,11 +201,15 @@ namespace PlayHouse
             }
         }
 
+        /// <summary>
+        /// Encodes a string to UTF-8 and writes it to the provided buffer.
+        /// The string size must be 128 bytes or less when encoded in UTF-8.
+        /// </summary>
         public void Write(string value)
         {
             var maxByteCount = Encoding.UTF8.GetMaxByteCount(value.Length);
 
-            if (maxByteCount > 1024)
+            if (maxByteCount > 128)
             {
                 throw new InvalidOperationException("String too large for stack allocation");
             }
@@ -213,11 +217,14 @@ namespace PlayHouse
             Span<byte> buffer = stackalloc byte[maxByteCount];
             var bytesUsed = Encoding.UTF8.GetBytes(value, buffer);
 
+            Enqueue((byte)bytesUsed); // string size
+
             for (var i = 0; i < bytesUsed; i++)
             {
                 Enqueue(buffer[i]);
             }
         }
+
 
         public void Write(byte b)
         {
