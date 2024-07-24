@@ -11,6 +11,13 @@ namespace PlayHouse.Utils
         void Error(Func<string> messageFactory, string className, string methodName);
         void Trace(Func<string> messageFactory, string className, string methodName);
         void Fatal(Func<string> messageFactory, string className, string methodName);
+
+        void Debug(Func<FormattableString> messageFactory, string className, string methodName);
+        void Info(Func<FormattableString> messageFactory, string className, string methodName);
+        void Warn(Func<FormattableString> messageFactory, string className, string methodName);
+        void Error(Func<FormattableString> messageFactory, string className, string methodName);
+        void Trace(Func<FormattableString> messageFactory, string className, string methodName);
+        void Fatal(Func<FormattableString> messageFactory, string className, string methodName);
     }
 
     public enum LogLevel
@@ -54,6 +61,37 @@ namespace PlayHouse.Utils
         {
             Console.WriteLine($"{GetTimeStamp()} FATAL: [{className}] ({methodName}) {messageFactory()}");
         }
+
+        public void Trace(Func<FormattableString> messageFactory, string className, string methodName)
+        {
+            Console.WriteLine($"{GetTimeStamp()} TRACE: [{className}] ({methodName}) {messageFactory()}");
+        }
+
+        public void Debug(Func<FormattableString> messageFactory, string className, string methodName)
+        {
+            Console.WriteLine($"{GetTimeStamp()} DEBUG: [{className}] ({methodName}) {messageFactory()}");
+        }
+
+        public void Info(Func<FormattableString> messageFactory, string className, string methodName)
+        {
+            Console.WriteLine($"{GetTimeStamp()} INFO: [{className}] ({methodName}) {messageFactory()}");
+        }
+
+        public void Warn(Func<FormattableString> messageFactory, string className, string methodName)
+        {
+            Console.WriteLine($"{GetTimeStamp()} WARN: [{className}] ({methodName}) {messageFactory()}");
+        }
+
+        public void Error(Func<FormattableString> messageFactory, string className, string methodName)
+        {
+            Console.WriteLine($"{GetTimeStamp()} ERROR: [{className}] ({methodName}) {messageFactory()}");
+        }
+
+        public void Fatal(Func<FormattableString> messageFactory, string className, string methodName)
+        {
+            Console.WriteLine($"{GetTimeStamp()} FATAL: [{className}] ({methodName}) {messageFactory()}");
+        }
+
 
         private string GetTimeStamp()
         {
@@ -123,6 +161,54 @@ namespace PlayHouse.Utils
                 LoggerConfigure.Log.Fatal(messageFactory, className, methodName);
             }
         }
+
+        public static void Trace(Func<FormattableString> messageFactory, string className, string methodName)
+        {
+            if (LogLevel.Trace >= LoggerConfigure.LogLevel)
+            {
+                LoggerConfigure.Log.Trace(messageFactory, className, methodName);
+            }
+        }
+
+        public static void Debug(Func<FormattableString> messageFactory, string className, string methodName)
+        {
+            if (LogLevel.Debug >= LoggerConfigure.LogLevel)
+            {
+                LoggerConfigure.Log.Debug(messageFactory, className, methodName);
+            }
+        }
+
+        public static void Info(Func<FormattableString> messageFactory, string className, string methodName)
+        {
+            if (LogLevel.Info >= LoggerConfigure.LogLevel)
+            {
+                LoggerConfigure.Log.Info(messageFactory, className, methodName);
+            }
+        }
+
+        public static void Warn(Func<FormattableString> messageFactory, string className, string methodName)
+        {
+            if (LogLevel.Warning >= LoggerConfigure.LogLevel)
+            {
+                LoggerConfigure.Log.Warn(messageFactory, className, methodName);
+            }
+        }
+
+        public static void Error(Func<FormattableString> messageFactory, string className, string methodName)
+        {
+            if (LogLevel.Error >= LoggerConfigure.LogLevel)
+            {
+                LoggerConfigure.Log.Error(messageFactory, className, methodName);
+            }
+        }
+
+        public static void Fatal(Func<FormattableString> messageFactory, string className, string methodName)
+        {
+            if (LogLevel.Fatal >= LoggerConfigure.LogLevel)
+            {
+                LoggerConfigure.Log.Fatal(messageFactory, className, methodName);
+            }
+        }
     }
 
     public class LOG<T>
@@ -175,6 +261,54 @@ namespace PlayHouse.Utils
         }
 
         public void Fatal(Func<string> messageFactory, [CallerMemberName] string methodName = "")
+        {
+            if (LogLevel.Fatal >= LoggerConfigure.LogLevel)
+            {
+                LoggerConfigure.Log.Fatal(messageFactory, _typeName, methodName);
+            }
+        }
+
+        public void Trace(Func<FormattableString> messageFactory, [CallerMemberName] string methodName = "")
+        {
+            if (LogLevel.Trace >= LoggerConfigure.LogLevel)
+            {
+                LoggerConfigure.Log.Trace(messageFactory, _typeName, methodName);
+            }
+        }
+
+        public void Debug(Func<FormattableString> messageFactory, [CallerMemberName] string methodName = "")
+        {
+            if (LogLevel.Debug >= LoggerConfigure.LogLevel)
+            {
+                LoggerConfigure.Log.Debug(messageFactory, _typeName, methodName);
+            }
+        }
+
+        public void Info(Func<FormattableString> messageFactory, [CallerMemberName] string methodName = "")
+        {
+            if (LogLevel.Info >= LoggerConfigure.LogLevel)
+            {
+                LoggerConfigure.Log.Info(messageFactory, _typeName, methodName);
+            }
+        }
+
+        public void Warn(Func<FormattableString> messageFactory, [CallerMemberName] string methodName = "")
+        {
+            if (LogLevel.Warning >= LoggerConfigure.LogLevel)
+            {
+                LoggerConfigure.Log.Warn(messageFactory, _typeName, methodName);
+            }
+        }
+
+        public void Error(Func<FormattableString> messageFactory, [CallerMemberName] string methodName = "")
+        {
+            if (LogLevel.Error >= LoggerConfigure.LogLevel)
+            {
+                LoggerConfigure.Log.Error(messageFactory, _typeName, methodName);
+            }
+        }
+
+        public void Fatal(Func<FormattableString> messageFactory, [CallerMemberName] string methodName = "")
         {
             if (LogLevel.Fatal >= LoggerConfigure.LogLevel)
             {
