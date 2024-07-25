@@ -11,7 +11,11 @@ namespace PlayHouse.Utils
         void Error(Func<string> messageFactory, string className, string methodName);
         void Trace(Func<string> messageFactory, string className, string methodName);
         void Fatal(Func<string> messageFactory, string className, string methodName);
+    }
 
+    public interface IPlayHouseFLogger
+    {
+        
         void Debug(Func<FormattableString> messageFactory, string className, string methodName);
         void Info(Func<FormattableString> messageFactory, string className, string methodName);
         void Warn(Func<FormattableString> messageFactory, string className, string methodName);
@@ -61,8 +65,16 @@ namespace PlayHouse.Utils
         {
             Console.WriteLine($"{GetTimeStamp()} FATAL: [{className}] ({methodName}) {messageFactory()}");
         }
+        
+        private string GetTimeStamp()
+        {
+            return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+        }
+    }
 
-        public void Trace(Func<FormattableString> messageFactory, string className, string methodName)
+    public class ConsoleFLogger : IPlayHouseFLogger
+    {
+      public void Trace(Func<FormattableString> messageFactory, string className, string methodName)
         {
             Console.WriteLine($"{GetTimeStamp()} TRACE: [{className}] ({methodName}) {messageFactory()}");
         }
@@ -98,17 +110,25 @@ namespace PlayHouse.Utils
             return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
         }
     }
-
     public static class LoggerConfigure
     {
         public static IPlayHouseLogger Log { get; private set; } = new ConsoleLogger();
 
         public static LogLevel LogLevel { get; private set; } = LogLevel.Debug;
 
+        public static IPlayHouseFLogger FLog { get; private set; } = new ConsoleFLogger();
+
+        public static LogLevel FLogLevel { get; private set; } = LogLevel.Debug;
+
         public static void SetLogger(IPlayHouseLogger logger, LogLevel logLevel)
         {
             Log = logger;
             LogLevel = logLevel;
+        }
+        public static void SetLogger(IPlayHouseFLogger logger, LogLevel logLevel)
+        {
+            FLog = logger;
+            FLogLevel = logLevel;
         }
     }
 
@@ -162,11 +182,16 @@ namespace PlayHouse.Utils
             }
         }
 
+    }
+
+    public static class StaticFLOG
+    {
+
         public static void Trace(Func<FormattableString> messageFactory, string className, string methodName)
         {
             if (LogLevel.Trace >= LoggerConfigure.LogLevel)
             {
-                LoggerConfigure.Log.Trace(messageFactory, className, methodName);
+                LoggerConfigure.FLog.Trace(messageFactory, className, methodName);
             }
         }
 
@@ -174,7 +199,7 @@ namespace PlayHouse.Utils
         {
             if (LogLevel.Debug >= LoggerConfigure.LogLevel)
             {
-                LoggerConfigure.Log.Debug(messageFactory, className, methodName);
+                LoggerConfigure.FLog.Debug(messageFactory, className, methodName);
             }
         }
 
@@ -182,7 +207,7 @@ namespace PlayHouse.Utils
         {
             if (LogLevel.Info >= LoggerConfigure.LogLevel)
             {
-                LoggerConfigure.Log.Info(messageFactory, className, methodName);
+                LoggerConfigure.FLog.Info(messageFactory, className, methodName);
             }
         }
 
@@ -190,7 +215,7 @@ namespace PlayHouse.Utils
         {
             if (LogLevel.Warning >= LoggerConfigure.LogLevel)
             {
-                LoggerConfigure.Log.Warn(messageFactory, className, methodName);
+                LoggerConfigure.FLog.Warn(messageFactory, className, methodName);
             }
         }
 
@@ -198,7 +223,7 @@ namespace PlayHouse.Utils
         {
             if (LogLevel.Error >= LoggerConfigure.LogLevel)
             {
-                LoggerConfigure.Log.Error(messageFactory, className, methodName);
+                LoggerConfigure.FLog.Error(messageFactory, className, methodName);
             }
         }
 
@@ -206,19 +231,14 @@ namespace PlayHouse.Utils
         {
             if (LogLevel.Fatal >= LoggerConfigure.LogLevel)
             {
-                LoggerConfigure.Log.Fatal(messageFactory, className, methodName);
+                LoggerConfigure.FLog.Fatal(messageFactory, className, methodName);
             }
         }
     }
 
     public class LOG<T>
     {
-        private readonly string _typeName;
-
-        public LOG()
-        {
-            _typeName = typeof(T).FullName ?? typeof(T).Name;
-        }
+        private readonly string _typeName = typeof(T).FullName ?? typeof(T).Name;
 
         public void Trace(Func<string> messageFactory, [CallerMemberName] string methodName = "")
         {
@@ -267,12 +287,17 @@ namespace PlayHouse.Utils
                 LoggerConfigure.Log.Fatal(messageFactory, _typeName, methodName);
             }
         }
+    }
+
+    public class FLOG<T>
+    {
+        private readonly string _typeName = typeof(T).FullName ?? typeof(T).Name;
 
         public void Trace(Func<FormattableString> messageFactory, [CallerMemberName] string methodName = "")
         {
             if (LogLevel.Trace >= LoggerConfigure.LogLevel)
             {
-                LoggerConfigure.Log.Trace(messageFactory, _typeName, methodName);
+                LoggerConfigure.FLog.Trace(messageFactory, _typeName, methodName);
             }
         }
 
@@ -280,7 +305,7 @@ namespace PlayHouse.Utils
         {
             if (LogLevel.Debug >= LoggerConfigure.LogLevel)
             {
-                LoggerConfigure.Log.Debug(messageFactory, _typeName, methodName);
+                LoggerConfigure.FLog.Debug(messageFactory, _typeName, methodName);
             }
         }
 
@@ -288,7 +313,7 @@ namespace PlayHouse.Utils
         {
             if (LogLevel.Info >= LoggerConfigure.LogLevel)
             {
-                LoggerConfigure.Log.Info(messageFactory, _typeName, methodName);
+                LoggerConfigure.FLog.Info(messageFactory, _typeName, methodName);
             }
         }
 
@@ -296,7 +321,7 @@ namespace PlayHouse.Utils
         {
             if (LogLevel.Warning >= LoggerConfigure.LogLevel)
             {
-                LoggerConfigure.Log.Warn(messageFactory, _typeName, methodName);
+                LoggerConfigure.FLog.Warn(messageFactory, _typeName, methodName);
             }
         }
 
@@ -304,7 +329,7 @@ namespace PlayHouse.Utils
         {
             if (LogLevel.Error >= LoggerConfigure.LogLevel)
             {
-                LoggerConfigure.Log.Error(messageFactory, _typeName, methodName);
+                LoggerConfigure.FLog.Error(messageFactory, _typeName, methodName);
             }
         }
 
@@ -312,7 +337,7 @@ namespace PlayHouse.Utils
         {
             if (LogLevel.Fatal >= LoggerConfigure.LogLevel)
             {
-                LoggerConfigure.Log.Fatal(messageFactory, _typeName, methodName);
+                LoggerConfigure.FLog.Fatal(messageFactory, _typeName, methodName);
             }
         }
     }
