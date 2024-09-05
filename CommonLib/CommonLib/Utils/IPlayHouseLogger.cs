@@ -80,7 +80,8 @@ namespace PlayHouse.Utils
     
    public class LOG<T>
     {
-        private readonly string _typeName = typeof(T).FullName ?? typeof(T).Name;
+        //private readonly string _typeName = typeof(T).FullName ?? typeof(T).Name;
+        private readonly string _typeName =  typeof(T).Name;
 
         public void Trace(Func<FormattableString> messageFactory, [CallerMemberName] string methodName = "")
         {
