@@ -59,7 +59,7 @@ namespace PlayHouse.Utils
 
         private string GetTimeStamp()
         {
-            return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            return DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
         }
     }
     public static class LoggerConfigure
