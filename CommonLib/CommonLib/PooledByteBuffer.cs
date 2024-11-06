@@ -1,6 +1,6 @@
-﻿using System;
+﻿using CommonLib;
+using System;
 using System.Text;
-using CommonLib;
 
 namespace PlayHouse
 {
@@ -284,7 +284,10 @@ namespace PlayHouse
                 body.Enqueue(Dequeue());
             }
         }
-
+        public byte PeekByte(int index)
+        {
+            return GetByte(index);
+        }
         public int PeekInt32(int index)
         {
             if (_count < sizeof(int))
