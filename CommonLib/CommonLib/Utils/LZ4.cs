@@ -3,23 +3,29 @@ using System;
 
 namespace PlayHouse.Utils
 {
-    public static class Lz4
+    public  class Lz4
     {
-        private static byte[]? _compressBuffer;
-        private static byte[]? _depressBuffer;
-        public static void Init(int bufferSize)
-        {
-            _compressBuffer ??= new byte[bufferSize];
-            _depressBuffer ??= new byte[bufferSize];
-        }
+        private readonly byte[]? _compressBuffer;
+        private readonly byte[]? _depressBuffer;
 
-        private static void EnsureInitialized()
+        public Lz4(byte[] compressBuffer, byte[] depressBuffer)
+        {
+            _compressBuffer = compressBuffer;
+            _depressBuffer = depressBuffer;
+        }
+        //public  void Init(int bufferSize)
+        //{
+        //    _compressBuffer ??= new byte[bufferSize];
+        //    _depressBuffer ??= new byte[bufferSize];
+        //}
+
+        private  void EnsureInitialized()
         {
             if (_compressBuffer == null || _depressBuffer == null)
                 throw new InvalidOperationException("Buffers are not initialized. Call Init() first.");
         }
 
-        public static ReadOnlySpan<byte> Compress(ReadOnlySpan<byte> input)
+        public  ReadOnlySpan<byte> Compress(ReadOnlySpan<byte> input)
         {
             EnsureInitialized();
             // 최대 압축 크기 계산
@@ -36,7 +42,7 @@ namespace PlayHouse.Utils
         }
 
 
-        public static ReadOnlySpan<byte> Decompress(ReadOnlySpan<byte> compressed, int originalSize)
+        public ReadOnlySpan<byte> Decompress(ReadOnlySpan<byte> compressed, int originalSize)
         {
             EnsureInitialized();
 
