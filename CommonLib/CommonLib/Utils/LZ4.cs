@@ -3,14 +3,14 @@ using System;
 
 namespace PlayHouse.Utils
 {
-    public static class LZ4
+    public static class Lz4
     {
         private static byte[]? _compressBuffer;
         private static byte[]? _depressBuffer;
         public static void Init(int bufferSize)
         {
-            _compressBuffer = new byte[bufferSize];
-            _depressBuffer = new byte[bufferSize];
+            _compressBuffer ??= new byte[bufferSize];
+            _depressBuffer ??= new byte[bufferSize];
         }
 
         private static void EnsureInitialized()
