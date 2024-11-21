@@ -5,31 +5,20 @@ namespace PlayHouse.Utils
 {
     public  class Lz4
     {
-        private readonly byte[]? _compressBuffer;
-        private readonly byte[]? _depressBuffer;
-
-        public Lz4(byte[] compressBuffer, byte[] depressBuffer)
-        {
-            _compressBuffer = compressBuffer;
-            _depressBuffer = depressBuffer;
-        }
-        //public  void Init(int bufferSize)
-        //{
-        //    _compressBuffer ??= new byte[bufferSize];
-        //    _depressBuffer ??= new byte[bufferSize];
-        //}
-
-        private  void EnsureInitialized()
-        {
-            if (_compressBuffer == null || _depressBuffer == null)
-                throw new InvalidOperationException("Buffers are not initialized. Call Init() first.");
-        }
-
+        private const int MaxBufferSize = 1024 * 1024 * 2; // 2mb
+        private byte[] _compressBuffer = new byte[1024 * 10];
+        private byte[] _depressBuffer = new byte[1024 * 10];
+        
         public  ReadOnlySpan<byte> Compress(ReadOnlySpan<byte> input)
         {
-            EnsureInitialized();
             // 최대 압축 크기 계산
             int maxCompressedSize = LZ4Codec.MaximumOutputSize(input.Length);
+
+            if (_compressBuffer.Length < maxCompressedSize)
+            {
+                int newSize = Math.Min(maxCompressedSize * 2, MaxBufferSize);
+                _compressBuffer = new byte[newSize];
+            }
 
             // LZ4 압축 수행
             int compressedSize = LZ4Codec.Encode(
@@ -44,8 +33,11 @@ namespace PlayHouse.Utils
 
         public ReadOnlySpan<byte> Decompress(ReadOnlySpan<byte> compressed, int originalSize)
         {
-            EnsureInitialized();
-
+            if (_depressBuffer.Length < originalSize)
+            {
+                int newSize = Math.Min(originalSize * 2, MaxBufferSize);
+                _depressBuffer = new byte[newSize];
+            }
             // LZ4 압축 해제 수행
             int decodedSize = LZ4Codec.Decode(
                 compressed,                     // 입력 데이터
