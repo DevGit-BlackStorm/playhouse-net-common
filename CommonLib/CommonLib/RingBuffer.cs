@@ -78,5 +78,11 @@ namespace CommonLib
         {
             return (index + 1) % Capacity;
         }
+
+        public bool ReadBool()
+        {
+            var data = ReadByte();
+            return data != 0;
+        }
     }
 }
