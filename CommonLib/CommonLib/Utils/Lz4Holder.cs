@@ -4,7 +4,7 @@ namespace PlayHouse.Utils;
 
 public class Lz4Holder
 {
-    private Lz4? _lz4 = null;
+    private readonly Lz4? _lz4;
 
     // 싱글톤 인스턴스
     private static readonly Lazy<Lz4Holder> _instance = new Lazy<Lz4Holder>(() => new Lz4Holder());
@@ -13,7 +13,11 @@ public class Lz4Holder
     public static Lz4Holder Instance => _instance.Value;
 
     // Private constructor to enforce singleton pattern
-    private Lz4Holder() { }
+    private Lz4Holder()
+    {
+        _lz4 = new Lz4();
+    }
+
 
     public ReadOnlySpan<byte> Compress(ReadOnlySpan<byte> input)
     {
